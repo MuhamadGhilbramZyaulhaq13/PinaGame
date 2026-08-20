@@ -1,0 +1,10 @@
+{
+  "chapters": [
+    {
+      "id": 1,
+      "title": "Moon Melon",
+      "dialogFile": "data/chapters/chapter1.json",
+      "initialSceneId": "GARDEN_MAIN"
+    }
+  ]
+}
