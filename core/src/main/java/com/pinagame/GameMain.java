@@ -40,7 +40,11 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         // Listener global: forward perubahan scene & akhir dialog ke level game,
         // terlepas dari screen mana yang sedang aktif menampilkan teksnya.
         dialogManager.addListener(new DialogManager.DialogListener() {
-            @Override public void onLine(String speaker, String text) {}
+            @Override public void onLine(String speaker, String text) {
+                // Auto-save tiap baris dialog baru tampil, supaya progres di TENGAH
+                // chapter pun tidak hilang kalau pemain menutup game tiba-tiba.
+                persist();
+            }
             @Override public void onChoices(List<DialogChoice> choices) { /* ditangani per-screen (BaseGameScreen) */ }
             @Override public void onSceneChangeRequested(String sceneId) {
                 sceneManager.onDialogSceneChangeRequested(sceneId);

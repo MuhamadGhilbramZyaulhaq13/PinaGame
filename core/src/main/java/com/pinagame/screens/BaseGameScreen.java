@@ -13,6 +13,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.pinagame.core.DialogManager;
 import com.pinagame.core.dialog.DialogChoice;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.Gdx;
 
 import java.util.List;
@@ -63,15 +64,17 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         dialogueBox.bottom().padBottom(24);
         dialogueBox.add(box);
 
-        uiStage.addActor(dialogueBox);
-
-        // Tap di luar tombol pilihan = advance() ke baris berikutnya.
-        uiStage.addListener(new ClickListener() {
+        Actor clickCatcher = new Actor();
+        clickCatcher.setBounds(-10000, -10000, 20000, 20000);
+        clickCatcher.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 dialogManager.advance();
             }
         });
+
+        uiStage.addActor(clickCatcher); // ditambah duluan -> lapisan paling belakang
+        uiStage.addActor(dialogueBox);  // ditambah belakangan -> lapisan paling depan
     }
 
     protected Skin loadSkin() {
