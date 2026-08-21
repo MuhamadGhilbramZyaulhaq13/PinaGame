@@ -9,7 +9,7 @@ import com.pinagame.core.dialog.DialogNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
+import java.util.concurrent.CopyOnWriteArrayList;
 /**
  * Menjalankan satu DialogGraph: menampilkan baris demi baris, menangani percabangan
  * pilihan, dan memicu efek samping (ganti scene, set flag) lewat field "action" di node.
@@ -31,8 +31,9 @@ public class DialogManager {
 
     private DialogGraph graph;
     private DialogNode currentNode;
+    private boolean ended = false;
     private final StoryFlags flags;
-    private final List<DialogListener> listeners = new ArrayList<>();
+    private final List<DialogListener> listeners = new CopyOnWriteArrayList<>();
 
     public DialogManager(StoryFlags flags) {
         this.flags = flags;
@@ -51,6 +52,7 @@ public class DialogManager {
         Json json = new Json();
         String raw = Gdx.files.internal(internalPath).readString("UTF-8");
         this.graph = json.fromJson(DialogGraph.class, raw);
+        this.ended = false;
 
         // Isi id node otomatis dari key map kalau penulis JSON tidak mengisi field "id" manual.
         for (Map.Entry<String, DialogNode> entry : graph.nodes.entrySet()) {
@@ -67,6 +69,7 @@ public class DialogManager {
     }
 
     public void goToNode(String nodeId) {
+        if (ended) return;
         DialogNode node = graph.nodes.get(nodeId);
         if (node == null) {
             Gdx.app.error("DialogManager", "Node tidak ditemukan: " + nodeId);
@@ -74,7 +77,6 @@ public class DialogManager {
             return;
         }
 
-        // Node bersyarat: kalau flag belum terpenuhi, loncat ke fallback "next".
         if (node.requiresFlag != null && !flags.getBoolean(node.requiresFlag)) {
             if (node.next != null) {
                 goToNode(node.next);
@@ -112,6 +114,7 @@ public class DialogManager {
 
     /** Dipanggil UI ketika pemain tap layar untuk lanjut ke baris berikutnya. */
     public void advance() {
+        if (ended) return;
         if (currentNode != null && currentNode.next != null) {
             goToNode(currentNode.next);
         } else {
@@ -145,6 +148,7 @@ public class DialogManager {
     }
 
     private void notifyEnd() {
+        ended = true;
         for (DialogListener l : listeners) l.onDialogEnd();
     }
 }

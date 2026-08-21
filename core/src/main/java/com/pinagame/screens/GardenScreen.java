@@ -35,6 +35,7 @@ public class GardenScreen extends BaseGameScreen {
 
     @Override
     public void render(float delta) {
+        clearScreen();
         if (!dialogTriggered) {
             handleInput(delta);
             checkNpcTrigger();

@@ -1,4 +1,8 @@
 {
-"currentDialogNode": "d1_001",
-"lastSavedAtMillis": 1787223273997
+"currentChapter": 2,
+"currentDialogNode": null,
+"completedChapters": [
+	"1"
+],
+"lastSavedAtMillis": 1787304404758
 }

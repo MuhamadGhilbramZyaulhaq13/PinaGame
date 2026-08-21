@@ -28,6 +28,7 @@ public class PixelArtScreen extends BaseGameScreen {
 
     @Override
     public void render(float delta) {
+        clearScreen();
         // TODO: gambar background pixel-art sesuai sceneId (mis. "PIXEL_ROOM_DATT_HERI")
         // dan sprite Datt/Heri (idle animation via TextureAtlas + Animation<TextureRegion>).
         // Palet retro: gunakan Texture dengan setFilter(Nearest, Nearest) supaya tidak blur.

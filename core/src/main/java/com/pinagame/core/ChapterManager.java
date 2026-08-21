@@ -18,9 +18,13 @@ public class ChapterManager {
     public static class Chapter {
         public int id;
         public String title;
-        /** Path internal ke file dialog JSON, mis. "data/chapters/chapter1.json" */
+        /**
+         * Path internal ke file dialog JSON, mis. "data/chapters/chapter1.json"
+         */
         public String dialogFile;
-        /** Id scene visual awal saat chapter ini dimulai, mis. "GARDEN_MAIN" */
+        /**
+         * Id scene visual awal saat chapter ini dimulai, mis. "GARDEN_MAIN"
+         */
         public String initialSceneId;
     }
 
@@ -47,13 +51,13 @@ public class ChapterManager {
 
     /**
      * resumeNodeId: null/kosong untuk mulai chapter dari awal, atau id node terakhir untuk lanjut.
-     *
+     * <p>
      * PENTING: kalau resumeNodeId KOSONG (chapter baru dimulai dari nol), dialog TIDAK
      * langsung dijalankan di sini. Ini supaya scene yang butuh trigger gameplay dulu
      * (mis. GardenScreen: pemain harus jalan mendekati NPC Datt) tidak "diserobot" oleh
      * dialog yang auto-mulai. Screen awal itu sendiri yang memanggil dialogManager.startFrom(null)
      * pada momen yang tepat (lihat GardenScreen#checkNpcTrigger).
-     *
+     * <p>
      * Kalau resumeNodeId TERISI (lanjut dari save lama di tengah dialog), kita langsung
      * lompat ke node itu — pemain sudah pernah melewati trigger-nya sebelumnya.
      */
@@ -82,6 +86,18 @@ public class ChapterManager {
             if (c.id == id) return c;
         }
         return null;
+    }
+
+    public boolean hasChapter(int id) {
+        return findChapter(id) != null;
+    }
+
+    public int getHighestAvailableChapterId() {
+        int max = 1;
+        for (Chapter c : manifest.chapters) {
+            if (c.id > max) max = c.id;
+        }
+        return max;
     }
 
     public Chapter getActiveChapter() {

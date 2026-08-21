@@ -15,6 +15,7 @@ import com.pinagame.core.DialogManager;
 import com.pinagame.core.dialog.DialogChoice;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.List;
 
@@ -43,6 +44,9 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         this.game = game;
         this.dialogManager = dialogManager;
         this.sceneId = sceneId;
+    }
+    protected void clearScreen() {
+        ScreenUtils.clear(0f, 0f, 0f, 1f);
     }
 
     protected void buildDialogueUI() {
@@ -74,7 +78,8 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         });
 
         uiStage.addActor(clickCatcher); // ditambah duluan -> lapisan paling belakang
-        uiStage.addActor(dialogueBox);  // ditambah belakangan -> lapisan paling depan
+        uiStage.addActor(dialogueBox);
+        Gdx.input.setInputProcessor(uiStage);
     }
 
     protected Skin loadSkin() {
@@ -133,6 +138,7 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         uiStage.act(delta);
         uiStage.draw();
     }
+
 
     @Override
     public void resize(int width, int height) {

@@ -13,6 +13,7 @@ import com.pinagame.core.dialog.DialogChoice;
 import com.pinagame.screens.GardenScreen;
 import com.pinagame.screens.PixelArtScreen;
 import com.pinagame.screens.SocialMediaScreen;
+import com.badlogic.gdx.Gdx;
 
 import java.util.List;
 
@@ -57,7 +58,15 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         chapterManager = new ChapterManager(dialogManager, sceneManager);
         chapterManager.loadManifest("data/chapters_manifest.json");
 
-        chapterManager.startChapter(saveData.currentChapter, saveData.currentDialogNode);
+        int chapterToStart = saveData.currentChapter;
+        String resumeNode = saveData.currentDialogNode;
+        if (!chapterManager.hasChapter(chapterToStart)) {
+            Gdx.app.log("GameMain", "Chapter " + chapterToStart + " belum tersedia, "
+                + "fallback ke chapter " + chapterManager.getHighestAvailableChapterId());
+            chapterToStart = chapterManager.getHighestAvailableChapterId();
+            resumeNode = null;
+        }
+        chapterManager.startChapter(chapterToStart, resumeNode);
     }
 
     /** Diimplementasikan dari SceneManager.SceneProvider — dipanggil tiap kali scene berganti. */

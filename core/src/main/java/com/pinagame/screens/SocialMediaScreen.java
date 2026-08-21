@@ -51,6 +51,7 @@ public class SocialMediaScreen extends BaseGameScreen {
 
     @Override
     public void render(float delta) {
+        clearScreen();
         switch (currentSubScreen) {
             case SEARCH:
                 // TODO: gambar search bar + daftar hasil pencarian "safinamn"
