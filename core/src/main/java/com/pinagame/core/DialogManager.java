@@ -115,7 +115,12 @@ public class DialogManager {
     /** Dipanggil UI ketika pemain tap layar untuk lanjut ke baris berikutnya. */
     public void advance() {
         if (ended) return;
-        if (currentNode != null && currentNode.next != null) {
+        if (currentNode == null) return;
+        if (currentNode.choices != null && !currentNode.choices.isEmpty()) {
+            return;
+        }
+
+        if (currentNode.next != null) {
             goToNode(currentNode.next);
         } else {
             notifyEnd();

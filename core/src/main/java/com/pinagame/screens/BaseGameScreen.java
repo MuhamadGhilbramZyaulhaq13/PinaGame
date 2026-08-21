@@ -57,6 +57,18 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         lineLabel = new Label("", skin);
         lineLabel.setWrap(true);
         choiceContainer = new Table();
+        speakerLabel.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialogManager.advance();
+            }
+        });
+        lineLabel.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialogManager.advance();
+            }
+        });
 
         Table box = new Table();
         box.add(speakerLabel).left().row();

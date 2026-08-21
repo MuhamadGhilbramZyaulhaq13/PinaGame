@@ -1,8 +1,21 @@
 {
-"currentChapter": 2,
-"currentDialogNode": null,
+"currentChapter": 3,
+"currentDialogNode": "d4_032",
 "completedChapters": [
 	"1"
 ],
-"lastSavedAtMillis": 1787304404758
+"flags": {
+	"chapter1_day1_complete": "true",
+	"datt_insecure_triggered": "true",
+	"correct_account_found": "true",
+	"chapter1_day4_complete": "true",
+	"wrong_account_followed": "true",
+	"chapter1_day2_complete": "true",
+	"day2_screenshot_taken": "true",
+	"day1_friends_confirmed": "true",
+	"d1_pina_grateful": "true",
+	"d4_followed_confidently": "true",
+	"chapter1_day3_complete": "true"
+},
+"lastSavedAtMillis": 1787335256338
 }

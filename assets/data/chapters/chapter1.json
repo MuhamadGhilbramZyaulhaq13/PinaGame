@@ -183,6 +183,9 @@
       "next": "d4_030" },
     "d4_030": { "action": "SET_FLAG", "actionTarget": "chapter1_day4_complete",
       "next": "d4_031" },
-    "d4_031": { "action": "Mereka berdua pun bermutualan di instagram\nEND CHAPTER" }
+    "d4_031": { "speaker": "Narrator",
+      "text": "Mereka berdua pun bermutualan di Instagram.",
+      "next": "d4_032" },
+    "d4_032": { "action": "END_CHAPTER" }
   }
 }
