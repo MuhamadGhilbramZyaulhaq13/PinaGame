@@ -1,5 +1,5 @@
 {
-"currentChapter": 3,
+"currentChapter": 2,
 "currentDialogNode": "d4_032",
 "completedChapters": [
 	"1"
@@ -14,8 +14,7 @@
 	"day2_screenshot_taken": "true",
 	"day1_friends_confirmed": "true",
 	"d1_pina_grateful": "true",
-	"d4_followed_confidently": "true",
 	"chapter1_day3_complete": "true"
 },
-"lastSavedAtMillis": 1787335256338
+"lastSavedAtMillis": 1787427185510
 }

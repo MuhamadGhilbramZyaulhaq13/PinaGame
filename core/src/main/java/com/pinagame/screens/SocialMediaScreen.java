@@ -1,24 +1,42 @@
 package com.pinagame.screens;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.pinagame.core.DialogManager;
-import com.pinagame.core.dialog.DialogChoice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Simulasi antarmuka smartphone (Instagram-like) sebagai overlay penuh layar
- * (mis. dibingkai frame HP biar jelas ini "layar dalam layar").
+ * Simulasi antarmuka smartphone (Instagram-like) sebagai overlay penuh layar,
+ * dibungkus "bezel" HP biar kerasa ini layar-dalam-layar, bukan gameplay biasa.
  *
- * State sub-layar (search / profile salah / profile benar / chat) ditentukan dari
- * sceneId yang dikirim SceneManager — bukan hardcode di kode, supaya penulis cerita
- * bisa atur alur "salah follow akun -> ketemu yang benar" cukup lewat JSON.
+ * Semua grafis di sini (avatar bulat, kotak foto, dsb) di-generate langsung lewat
+ * Pixmap saat runtime -- bukan file gambar -- supaya bisa langsung jalan tanpa perlu
+ * aset tambahan dulu. Gampang diganti ke gambar asli nanti: cukup ganti isi
+ * avatarPlaceholder()/squarePlaceholder() jadi load Texture dari assets.
+ *
+ * State sub-layar (search / profile salah / profile benar) ditentukan dari sceneId
+ * yang dikirim SceneManager -- bukan hardcode -- jadi alur "salah follow akun -> ketemu
+ * yang benar" diatur sepenuhnya lewat chapter1.json, bukan lewat kode di sini.
  */
 public class SocialMediaScreen extends BaseGameScreen {
 
     public enum UISubScreen { HOME_FEED, SEARCH, PROFILE_WRONG, PROFILE_CORRECT, CHAT }
 
     private UISubScreen currentSubScreen;
+    private final List<Texture> generatedTextures = new ArrayList<>();
 
     public SocialMediaScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -38,43 +56,254 @@ public class SocialMediaScreen extends BaseGameScreen {
     public void show() {
         super.show();
         buildDialogueUI();
-        // Sama seperti PixelArtScreen: screen ini selalu dimasuki di tengah alur dialog
-        // yang sedang berjalan lewat CHANGE_SCENE, jadi tidak perlu startFrom() manual di sini.
-    }
-
-    @Override
-    public void onChoices(List<DialogChoice> choices) {
-        super.onChoices(choices);
-        // Tempat menambah tombol UI bertema (mis. tombol "Follow" biru ala Instagram)
-        // kalau ingin choice direpresentasikan sebagai elemen UI HP, bukan tombol teks polos.
+        buildPhoneUI();
+        // Sama seperti sebelumnya: screen ini selalu dimasuki lewat CHANGE_SCENE
+        // di tengah dialog yang sudah berjalan, jadi tidak perlu startFrom() manual.
     }
 
     @Override
     public void render(float delta) {
         clearScreen();
+        super.render(delta);
+    }
+
+    @Override
+    public void dispose() {
+        super.dispose();
+        for (Texture t : generatedTextures) t.dispose();
+    }
+
+    // ---------------------------------------------------------------------
+    // Bezel HP + status bar
+    // ---------------------------------------------------------------------
+
+    private void buildPhoneUI() {
+        float screenW = Gdx.graphics.getWidth();
+        float screenH = Gdx.graphics.getHeight();
+        float phoneW = Math.min(380f, screenW * 0.42f);
+        float phoneH = Math.min(680f, screenH * 0.78f);
+        float phoneX = (screenW - phoneW) / 2f;
+        float phoneY = screenH - phoneH - 56f; // sisakan ruang di atas & di bawah (kotak dialog)
+
+        Table bezel = new Table();
+        bezel.setBackground(solidDrawable(new Color(0.08f, 0.08f, 0.08f, 1f)));
+        bezel.setSize(phoneW, phoneH);
+        bezel.setPosition(phoneX, phoneY);
+        bezel.top();
+
+        Table statusBar = new Table();
+        Label clock = new Label("09:41", skin);
+        clock.setColor(Color.WHITE);
+        tapAdvances(clock);
+        Label battery = new Label("100%", skin);
+        battery.setColor(Color.WHITE);
+        tapAdvances(battery);
+        statusBar.add(clock).expandX().left().padLeft(14);
+        statusBar.add(battery).padRight(14);
+        tapAdvances(statusBar);
+
+        Table screenArea = new Table();
+        screenArea.setBackground(solidDrawable(Color.WHITE));
+        screenArea.top();
+        screenArea.add(buildSubScreenContent()).growX().top();
+        tapAdvances(screenArea);
+
+        bezel.add(statusBar).growX().height(26).row();
+        bezel.add(screenArea).grow().pad(6);
+        tapAdvances(bezel);
+
+        uiStage.addActor(bezel);
+    }
+
+    // ---------------------------------------------------------------------
+    // Konten per sub-layar
+    // ---------------------------------------------------------------------
+
+    private Table buildSubScreenContent() {
         switch (currentSubScreen) {
-            case SEARCH:
-                // TODO: gambar search bar + daftar hasil pencarian "safinamn"
-                // (termasuk akun private 12k followers yang salah)
-                break;
-            case PROFILE_WRONG:
-                // TODO: gambar profile card akun private yang salah (12k followers, terkunci)
-                break;
-            case PROFILE_CORRECT:
-                // TODO: gambar profile card akun "safinamn" yang benar
-                break;
-            case CHAT:
-                // TODO: gambar bubble chat (Datt <-> Heri, atau notifikasi DM)
-                break;
+            case SEARCH: return buildSearchScreen();
+            case PROFILE_WRONG: return buildProfileScreen(false);
+            case PROFILE_CORRECT: return buildProfileScreen(true);
+            case CHAT: return buildChatScreen();
             case HOME_FEED:
-            default:
-                // TODO: gambar tampilan feed/home default
-                break;
+            default: return buildHomeFeedScreen();
+        }
+    }
+
+    private Table buildSearchScreen() {
+        boolean isWrongSearch = sceneId != null && sceneId.contains("WRONG");
+        String displayedQuery = isWrongSearch ? "safinamm" : "safinamn";
+
+        Table content = new Table();
+        content.top().pad(10);
+        tapAdvances(content);
+
+        Table searchBar = new Table();
+        searchBar.setBackground(solidDrawable(new Color(0.92f, 0.92f, 0.92f, 1f)));
+        Label queryLabel = new Label("Cari:  " + displayedQuery, skin);
+        queryLabel.setColor(Color.BLACK);
+        tapAdvances(queryLabel);
+        searchBar.add(queryLabel).left().pad(8);
+        tapAdvances(searchBar);
+        content.add(searchBar).growX().height(36).padBottom(14).row();
+
+        content.add(buildSearchResultRow(displayedQuery, isWrongSearch)).growX().padBottom(10).row();
+        if (!isWrongSearch) {
+            content.add(buildSearchResultRow("safinamn_official", false)).growX().padBottom(10).row();
         }
 
-        // TODO: bungkus semua render di atas dengan frame bezel HP supaya terasa
-        // seperti "layar dalam layar", bedakan dari GARDEN_3D/PIXEL_ART_2D.
+        return content;
+    }
 
-        super.render(delta);
+    private Table buildSearchResultRow(String username, boolean privateLock) {
+        Table row = new Table();
+        Image avatar = avatarPlaceholder(40, new Color(0.7f, 0.7f, 0.75f, 1f));
+        tapAdvances(avatar);
+        row.add(avatar).size(40).padRight(10);
+
+        Table textCol = new Table();
+        Label nameLabel = new Label(username, skin);
+        nameLabel.setColor(Color.BLACK);
+        tapAdvances(nameLabel);
+        textCol.add(nameLabel).left().row();
+        if (privateLock) {
+            Label lock = new Label("[Akun privat]", skin);
+            lock.setColor(Color.GRAY);
+            tapAdvances(lock);
+            textCol.add(lock).left();
+        }
+        tapAdvances(textCol);
+        row.add(textCol).left().growX();
+        tapAdvances(row);
+        return row;
+    }
+
+    private Table buildProfileScreen(boolean correct) {
+        Table content = new Table();
+        content.top().pad(14);
+        tapAdvances(content);
+
+        Color avatarColor = correct
+            ? new Color(0.65f, 0.55f, 0.9f, 1f)
+            : new Color(0.7f, 0.7f, 0.75f, 1f);
+        Image avatar = avatarPlaceholder(84, avatarColor);
+        tapAdvances(avatar);
+        content.add(avatar).size(84).padBottom(8).row();
+
+        Label username = new Label(correct ? "safinanm" : "safinamm", skin);
+        username.setColor(Color.BLACK);
+        tapAdvances(username);
+        content.add(username).padBottom(4).row();
+
+        if (!correct) {
+            Label lock = new Label("[Akun ini privat]", skin);
+            lock.setColor(Color.GRAY);
+            tapAdvances(lock);
+            content.add(lock).padBottom(4).row();
+        }
+
+        Label followers = new Label(correct ? "875 pengikut" : "12.483 pengikut", skin);
+        followers.setColor(Color.DARK_GRAY);
+        tapAdvances(followers);
+        content.add(followers).padBottom(14).row();
+
+        TextButton followBtn = new TextButton(correct ? "Following" : "Follow", skin);
+        tapAdvances(followBtn);
+        content.add(followBtn).width(140).height(32).padBottom(16).row();
+
+        if (correct) {
+            Table grid = new Table();
+            tapAdvances(grid);
+            for (int i = 0; i < 6; i++) {
+                Color c = new Color(0.5f + (i % 3) * 0.1f, 0.6f, 0.8f - (i % 2) * 0.1f, 1f);
+                Image tile = squarePlaceholder(52, c);
+                tapAdvances(tile);
+                grid.add(tile).size(52).pad(2);
+                if (i % 3 == 2) grid.row();
+            }
+            content.add(grid).row();
+        } else {
+            Label lockedGrid = new Label("[Ikuti akun ini untuk melihat foto dan videonya]", skin);
+            lockedGrid.setColor(Color.GRAY);
+            lockedGrid.setWrap(true);
+            tapAdvances(lockedGrid);
+            content.add(lockedGrid).width(220).row();
+        }
+
+        return content;
+    }
+
+    private Table buildChatScreen() {
+        // TODO: belum dipakai di Chapter 1 saat ini, disiapkan untuk chapter mendatang.
+        Table content = new Table();
+        content.top().pad(10);
+        Label placeholder = new Label("(chat)", skin);
+        placeholder.setColor(Color.GRAY);
+        tapAdvances(placeholder);
+        content.add(placeholder);
+        tapAdvances(content);
+        return content;
+    }
+
+    private Table buildHomeFeedScreen() {
+        Table content = new Table();
+        content.top().pad(10);
+        Label placeholder = new Label("Instagram", skin);
+        placeholder.setColor(Color.BLACK);
+        tapAdvances(placeholder);
+        content.add(placeholder);
+        tapAdvances(content);
+        return content;
+    }
+
+    // ---------------------------------------------------------------------
+    // Utilitas: grafis placeholder & "klik dimana saja tetap lanjut dialog"
+    // ---------------------------------------------------------------------
+
+    private Drawable solidDrawable(Color color) {
+        return skin.newDrawable("white", color);
+    }
+
+    private Texture createCircleTexture(int diameter, Color color) {
+        Pixmap pm = new Pixmap(diameter, diameter, Pixmap.Format.RGBA8888);
+        pm.setColor(color);
+        pm.fillCircle(diameter / 2, diameter / 2, diameter / 2);
+        Texture tex = new Texture(pm);
+        pm.dispose();
+        generatedTextures.add(tex);
+        return tex;
+    }
+
+    private Texture createSquareTexture(int size, Color color) {
+        Pixmap pm = new Pixmap(size, size, Pixmap.Format.RGBA8888);
+        pm.setColor(color);
+        pm.fill();
+        Texture tex = new Texture(pm);
+        pm.dispose();
+        generatedTextures.add(tex);
+        return tex;
+    }
+
+    private Image avatarPlaceholder(int diameter, Color color) {
+        return new Image(createCircleTexture(diameter, color));
+    }
+
+    private Image squarePlaceholder(int size, Color color) {
+        return new Image(createSquareTexture(size, color));
+    }
+
+    /**
+     * Karena UI HP ini menutupi area cukup besar di layar, elemen-elemennya
+     * (Label/Image/TextButton) bisa "menelan" klik seperti kasus dead-zone teks
+     * dialog kemarin. Supaya klik di mana pun tetap bikin dialog lanjut, listener
+     * yang sama ditempel di elemen-elemen dekoratif ini juga.
+     */
+    private void tapAdvances(Actor actor) {
+        actor.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dialogManager.advance();
+            }
+        });
     }
 }
