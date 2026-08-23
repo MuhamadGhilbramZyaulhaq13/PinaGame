@@ -139,6 +139,9 @@ public class DialogManager {
     public String getCurrentNodeId() {
         return currentNode != null ? currentNode.id : null;
     }
+    public boolean hasStarted() {
+        return currentNode != null;
+    }
 
     private void notifyLine(String speaker, String text) {
         for (DialogListener l : listeners) l.onLine(speaker, text);
