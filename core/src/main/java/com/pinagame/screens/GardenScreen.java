@@ -12,24 +12,13 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.pinagame.core.DialogManager;
 
-/**
- * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar block/robot
- * Pina berjalan di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
- *
- * Semua visual (rumput, petak tanah, Moon Melon, karakter) di-generate lewat Pixmap
- * saat runtime, sama seperti PixelArtScreen -- gampang diganti ke sprite/gambar asli
- * nanti tanpa perlu ubah logika pergerakan/trigger sama sekali.
- *
- * Posisi awal Pina & Datt beda tergantung ini kunjungan PERTAMA (Hari 1, nunggu
- * trigger jalan-mendekat) atau kunjungan SUSULAN (mis. Hari 4 balik dari Instagram,
- * langsung mulai dengan Datt "jalan nyamperin" Pina dari kejauhan).
- */
+
 public class GardenScreen extends BaseGameScreen {
 
     private static final float WORLD_W = 400f;
     private static final float WORLD_H = 260f;
-    private static final float SPEED = 90f; // kecepatan Pina, unit dunia/detik
-    private static final float DATT_WALK_SPEED = 150f; // Datt jalan lebih cepat, kesan "buru-buru"
+    private static final float SPEED = 90f;
+    private static final float DATT_WALK_SPEED = 150f;
 
     private float pinaX, pinaY;
     private float dattX, dattY;
@@ -58,8 +47,6 @@ public class GardenScreen extends BaseGameScreen {
         dattTexture = buildCharacterTexture(new Color(0.86f, 0.52f, 0.24f, 1f), false);
 
         if (dialogManager.hasStarted()) {
-            // Kunjungan SUSULAN (bukan Hari 1) -- dialog udah jalan dari tempat lain.
-            // Posisi beda dari Hari 1, dan Datt "jalan nyamperin" Pina dari kejauhan.
             pinaX = 180f;
             pinaY = 55f;
             dattX = 370f;
@@ -67,9 +54,8 @@ public class GardenScreen extends BaseGameScreen {
             dattTargetX = 215f;
             dattTargetY = 95f;
             dattWalking = true;
-            dialogTriggered = true; // gak perlu nunggu trigger lagi, dialog udah aktif
+            dialogTriggered = true;
         } else {
-            // Kunjungan PERTAMA (Hari 1) -- posisi & perilaku seperti semula.
             pinaX = 60f;
             pinaY = 50f;
             dattX = 270f;
@@ -82,9 +68,6 @@ public class GardenScreen extends BaseGameScreen {
     public void render(float delta) {
         clearScreen();
 
-        // Pergerakan Pina tetap aktif kapan pun (biar tetap "hidup" walau dialog
-        // lagi jalan sendiri), tapi TRIGGER buat mulai dialog cuma dicek kalau
-        // memang belum pernah trigger di screen ini.
         handleInput(delta);
         if (!dialogTriggered) {
             checkNpcTrigger();
@@ -94,8 +77,7 @@ public class GardenScreen extends BaseGameScreen {
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
 
-        // Skala kanvas dunia (400x260) supaya pas di lebar layar, tetap jaga rasio,
-        // rata atas -- sisa ruang bawah buat kotak dialog.
+
         float drawW = screenW;
         float drawH = screenW * (WORLD_H / WORLD_W);
         if (drawH > screenH) {
@@ -113,7 +95,7 @@ public class GardenScreen extends BaseGameScreen {
         drawCharacterSprite(pinaTexture, drawX, drawY, scale, pinaX, pinaY);
         batch.end();
 
-        super.render(delta); // gambar overlay kotak dialog di atas scene
+        super.render(delta);
     }
 
     @Override
@@ -125,9 +107,7 @@ public class GardenScreen extends BaseGameScreen {
         if (dattTexture != null) dattTexture.dispose();
     }
 
-    // ---------------------------------------------------------------------
-    // Pergerakan, jalan-nyamperin Datt, & trigger (koordinat dunia)
-    // ---------------------------------------------------------------------
+
 
     private void handleInput(float delta) {
         float dx = 0, dy = 0;
@@ -141,7 +121,6 @@ public class GardenScreen extends BaseGameScreen {
         pinaY = MathUtils.clamp(pinaY, 10f, WORLD_H - 10f);
     }
 
-    /** Gerakin Datt pelan-pelan menuju dattTargetX/Y kalau lagi dalam mode "jalan nyamperin". */
     private void updateDattWalk(float delta) {
         if (!dattWalking) return;
         float dx = dattTargetX - dattX;
@@ -160,7 +139,7 @@ public class GardenScreen extends BaseGameScreen {
 
     private void checkNpcTrigger() {
         if (dialogManager.hasStarted()) {
-            // Dialog udah jalan dari tempat lain -- JANGAN restart ke awal cerita.
+
             dialogTriggered = true;
             return;
         }
@@ -220,7 +199,7 @@ public class GardenScreen extends BaseGameScreen {
         return tex;
     }
 
-    /** isRobot=true buat Pina (kepala abu-abu + "visor" biru), false buat manusia biasa. */
+
     private Texture buildCharacterTexture(Color shirtColor, boolean isRobot) {
         int w = 12, h = 18;
         Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);

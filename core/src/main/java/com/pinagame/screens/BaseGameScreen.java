@@ -19,14 +19,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 
 import java.util.List;
 
-/**
- * Induk untuk GardenScreen / PixelArtScreen / SocialMediaScreen.
- * Menyediakan overlay kotak dialog + tombol pilihan yang seragam, supaya UI
- * dialog konsisten walau visual di belakangnya beda gaya (3D / pixel art / UI HP).
- *
- * Subclass WAJIB memanggil buildDialogueUI() di show(), dan bertanggung jawab
- * menggambar konten visualnya sendiri sebelum memanggil super.render(delta).
- */
+
 public abstract class BaseGameScreen extends ScreenAdapter implements DialogManager.DialogListener {
 
     protected final Game game;
@@ -89,7 +82,7 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
             }
         });
 
-        uiStage.addActor(clickCatcher); // ditambah duluan -> lapisan paling belakang
+        uiStage.addActor(clickCatcher);
         uiStage.addActor(dialogueBox);
         Gdx.input.setInputProcessor(uiStage);
     }
@@ -135,12 +128,10 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
 
     @Override
     public void onSceneChangeRequested(String sceneId) {
-        // Ditangani terpusat oleh SceneManager (lihat GameMain), tidak perlu di sini.
     }
 
     @Override
     public void onDialogEnd() {
-        // Opsional: subclass bisa override untuk sembunyikan UI dialog di titik ini.
     }
 
     // ---- ScreenAdapter ----
