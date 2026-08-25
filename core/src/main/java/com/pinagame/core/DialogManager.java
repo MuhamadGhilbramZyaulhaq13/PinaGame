@@ -10,16 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-/**
- * Menjalankan satu DialogGraph: menampilkan baris demi baris, menangani percabangan
- * pilihan, dan memicu efek samping (ganti scene, set flag) lewat field "action" di node.
- *
- * NOTE TEKNIS: com.badlogic.gdx.utils.Json (dipakai di loadGraph) kadang butuh bantuan
- * untuk membaca Map<String, DialogNode> secara generik. Kalau saat testing field "nodes"
- * ternyata kosong setelah parsing, tambahkan sebelum fromJson():
- *   json.setElementType(DialogGraph.class, "nodes", DialogNode.class);
- * atau, kalau masih rewel, ganti ke library Gson yang penanganan generic-nya lebih longgar.
- */
+
 public class DialogManager {
 
     public interface DialogListener {
@@ -47,14 +38,12 @@ public class DialogManager {
         listeners.remove(listener);
     }
 
-    /** Load file dialog dari assets, contoh: "data/chapters/chapter1.json" */
     public void loadGraph(String internalPath) {
         Json json = new Json();
         String raw = Gdx.files.internal(internalPath).readString("UTF-8");
         this.graph = json.fromJson(DialogGraph.class, raw);
         this.ended = false;
 
-        // Isi id node otomatis dari key map kalau penulis JSON tidak mengisi field "id" manual.
         for (Map.Entry<String, DialogNode> entry : graph.nodes.entrySet()) {
             if (entry.getValue().id == null) {
                 entry.getValue().id = entry.getKey();
@@ -62,7 +51,6 @@ public class DialogManager {
         }
     }
 
-    /** nodeId null/kosong -> mulai dari graph.startNode (dipakai untuk chapter baru). */
     public void startFrom(String nodeId) {
         String target = (nodeId == null || nodeId.isEmpty()) ? graph.startNode : nodeId;
         goToNode(target);
@@ -106,13 +94,10 @@ public class DialogManager {
         if (node.choices != null && !node.choices.isEmpty()) {
             notifyChoices(node.choices);
         } else if (node.action != null && node.text == null) {
-            // Node murni action (tanpa teks) -> langsung lanjut otomatis ke node berikutnya.
             if (node.next != null) goToNode(node.next);
         }
-        // Kalau ada node.text tapi tanpa choices, UI menunggu tap layar -> panggil advance().
     }
 
-    /** Dipanggil UI ketika pemain tap layar untuk lanjut ke baris berikutnya. */
     public void advance() {
         if (ended) return;
         if (currentNode == null) return;
