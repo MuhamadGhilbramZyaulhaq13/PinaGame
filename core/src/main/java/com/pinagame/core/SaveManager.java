@@ -8,14 +8,9 @@ import com.badlogic.gdx.utils.JsonWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 
-/**
- * Bertanggung jawab menyimpan & memuat progres pemain ke/dari file lokal
- * (bukan Preferences bawaan Android, supaya struktur data kompleks seperti
- * Map<String,String> dan Set<String> lebih gampang dikelola & di-migrate).
- */
+
 public class SaveManager {
 
-    /** Naikkan tiap kali struktur SaveData berubah, lalu tambah case migrasi di migrate(). */
     public static final int CURRENT_SAVE_VERSION = 1;
 
     private static final String SAVE_FILE_NAME = "pina_save.json";
@@ -35,7 +30,6 @@ public class SaveManager {
         return saveFile().exists();
     }
 
-    /** Selalu berhasil mengembalikan SaveData yang valid — kalau save rusak/belum ada, buat baru. */
     public SaveData load() {
         FileHandle file = saveFile();
         if (!file.exists()) {
@@ -56,29 +50,12 @@ public class SaveManager {
         saveFile().writeString(json.prettyPrint(data), false, "UTF-8");
     }
 
-    /**
-     * Migrasi save versi lama ke struktur terbaru secara ADDITIVE (tambah, tidak menghapus).
-     * Pola untuk chapter baru di masa depan:
-     *
-     *   if (version < 2) {
-     *       data.flags.putIfAbsent("chapter2_intro_seen", "false");
-     *       version = 2;
-     *   }
-     *   if (version < 3) {
-     *       ... migrasi berikutnya ...
-     *   }
-     *
-     * Dengan begini, pemain yang meng-update game tidak kehilangan progres chapter
-     * sebelumnya walau chapter baru menambah flag/field baru.
-     */
     private SaveData migrate(SaveData data) {
         if (data.flags == null) data.flags = new HashMap<>();
         if (data.completedChapters == null) data.completedChapters = new HashSet<>();
 
         int version = data.saveVersion;
 
-        // Tambahkan blok migrasi baru di sini seiring bertambahnya chapter.
-        // if (version < 2) { ... version = 2; }
 
         data.saveVersion = CURRENT_SAVE_VERSION;
         return data;
