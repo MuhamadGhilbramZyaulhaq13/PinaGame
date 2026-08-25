@@ -17,11 +17,7 @@ import com.badlogic.gdx.Gdx;
 
 import java.util.List;
 
-/**
- * Class utama libGDX (didaftarkan sebagai ApplicationListener oleh launcher
- * Desktop/Android). Menyatukan seluruh manager dan menangani load save saat
- * game dibuka serta auto-save saat progres berubah.
- */
+
 public class GameMain extends Game implements SceneManager.SceneProvider {
 
     private SaveManager saveManager;
@@ -38,12 +34,10 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         flags = new StoryFlags(saveData.flags);
 
         dialogManager = new DialogManager(flags);
-        // Listener global: forward perubahan scene & akhir dialog ke level game,
-        // terlepas dari screen mana yang sedang aktif menampilkan teksnya.
+
         dialogManager.addListener(new DialogManager.DialogListener() {
             @Override public void onLine(String speaker, String text) {
-                // Auto-save tiap baris dialog baru tampil, supaya progres di TENGAH
-                // chapter pun tidak hilang kalau pemain menutup game tiba-tiba.
+
                 persist();
             }
             @Override public void onChoices(List<DialogChoice> choices) { /* ditangani per-screen (BaseGameScreen) */ }
@@ -69,7 +63,6 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         chapterManager.startChapter(chapterToStart, resumeNode);
     }
 
-    /** Diimplementasikan dari SceneManager.SceneProvider — dipanggil tiap kali scene berganti. */
     @Override
     public Screen createScreen(VisualMode mode, String sceneId) {
         switch (mode) {
@@ -90,11 +83,8 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         // chapterManager.startChapter() untuk chapter yang belum ada.
     }
 
-    /**
-     * Simpan progres ke disk. Panggil ini secara berkala — idealnya lewat listener
-     * tambahan di DialogManager yang trigger tiap kali goToNode() berpindah, bukan
-     * hanya di akhir chapter, supaya progres di tengah chapter pun tidak hilang.
-     */
+
+
     public void persist() {
         saveData.currentDialogNode = dialogManager.getCurrentNodeId();
         saveData.flags = flags.raw();

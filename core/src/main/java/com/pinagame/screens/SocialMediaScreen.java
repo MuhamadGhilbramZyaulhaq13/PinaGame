@@ -18,19 +18,7 @@ import com.pinagame.core.DialogManager;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Simulasi antarmuka smartphone (Instagram-like) sebagai overlay penuh layar,
- * dibungkus "bezel" HP biar kerasa ini layar-dalam-layar, bukan gameplay biasa.
- *
- * Semua grafis di sini (avatar bulat, kotak foto, dsb) di-generate langsung lewat
- * Pixmap saat runtime -- bukan file gambar -- supaya bisa langsung jalan tanpa perlu
- * aset tambahan dulu. Gampang diganti ke gambar asli nanti: cukup ganti isi
- * avatarPlaceholder()/squarePlaceholder() jadi load Texture dari assets.
- *
- * State sub-layar (search / profile salah / profile benar) ditentukan dari sceneId
- * yang dikirim SceneManager -- bukan hardcode -- jadi alur "salah follow akun -> ketemu
- * yang benar" diatur sepenuhnya lewat chapter1.json, bukan lewat kode di sini.
- */
+
 public class SocialMediaScreen extends BaseGameScreen {
 
     public enum UISubScreen { HOME_FEED, SEARCH, PROFILE_WRONG, PROFILE_CORRECT, CHAT }
@@ -57,8 +45,7 @@ public class SocialMediaScreen extends BaseGameScreen {
         super.show();
         buildDialogueUI();
         buildPhoneUI();
-        // Sama seperti sebelumnya: screen ini selalu dimasuki lewat CHANGE_SCENE
-        // di tengah dialog yang sudah berjalan, jadi tidak perlu startFrom() manual.
+
     }
 
     @Override
@@ -83,7 +70,7 @@ public class SocialMediaScreen extends BaseGameScreen {
         float phoneW = Math.min(380f, screenW * 0.42f);
         float phoneH = Math.min(680f, screenH * 0.78f);
         float phoneX = (screenW - phoneW) / 2f;
-        float phoneY = screenH - phoneH - 56f; // sisakan ruang di atas & di bawah (kotak dialog)
+        float phoneY = screenH - phoneH - 56f;
 
         Table bezel = new Table();
         bezel.setBackground(solidDrawable(new Color(0.08f, 0.08f, 0.08f, 1f)));
@@ -292,12 +279,8 @@ public class SocialMediaScreen extends BaseGameScreen {
         return new Image(createSquareTexture(size, color));
     }
 
-    /**
-     * Karena UI HP ini menutupi area cukup besar di layar, elemen-elemennya
-     * (Label/Image/TextButton) bisa "menelan" klik seperti kasus dead-zone teks
-     * dialog kemarin. Supaya klik di mana pun tetap bikin dialog lanjut, listener
-     * yang sama ditempel di elemen-elemen dekoratif ini juga.
-     */
+
+
     private void tapAdvances(Actor actor) {
         actor.addListener(new ClickListener() {
             @Override

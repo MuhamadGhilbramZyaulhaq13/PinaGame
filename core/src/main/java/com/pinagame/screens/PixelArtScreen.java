@@ -9,16 +9,6 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.pinagame.core.DialogManager;
 
-/**
- * Scene dunia nyata bergaya pixel art retro (mis. Datt & Heri duduk di kamar
- * depan laptop). Digambar dengan cara "lukis di kanvas kecil (160x90px), lalu
- * diperbesar TANPA smoothing (Nearest filter)" -- teknik umum buat dapet efek
- * blocky/pixelated tanpa perlu file gambar asli.
- *
- * Gampang diganti ke sprite/gambar sungguhan nanti: cukup ganti isi
- * buildRoomTexture() jadi load Texture dari assets, bukan gambar Pixmap manual --
- * struktur render() (skala & posisi ke layar) tidak perlu diubah sama sekali.
- */
 public class PixelArtScreen extends BaseGameScreen {
 
     private static final int CANVAS_W = 160;
@@ -37,8 +27,7 @@ public class PixelArtScreen extends BaseGameScreen {
         buildDialogueUI();
         batch = new SpriteBatch();
         roomTexture = buildRoomTexture();
-        // Sama seperti sebelumnya: screen ini selalu dimasuki lewat CHANGE_SCENE
-        // di tengah dialog yang sudah berjalan, jadi tidak perlu startFrom() manual.
+
     }
 
     @Override
@@ -48,8 +37,8 @@ public class PixelArtScreen extends BaseGameScreen {
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
 
-        // Skala kanvas kecil supaya pas memenuhi lebar layar, tetap jaga rasio
-        // aslinya (160:90), rata atas -- sisa ruang bawah buat kotak dialog.
+
+
         float drawW = screenW;
         float drawH = screenW * ((float) CANVAS_H / CANVAS_W);
         if (drawH > screenH) {
@@ -64,7 +53,7 @@ public class PixelArtScreen extends BaseGameScreen {
         batch.draw(roomTexture, drawX, drawY, drawW, drawH);
         batch.end();
 
-        super.render(delta); // gambar overlay kotak dialog di atas scene
+        super.render(delta);
     }
 
     @Override
@@ -121,10 +110,10 @@ public class PixelArtScreen extends BaseGameScreen {
 
     private void drawSimpleCharacter(Pixmap pm, int baseX, Color shirtColor) {
         pm.setColor(shirtColor);
-        pm.fillRectangle(baseX, 58, 14, 20); // badan
+        pm.fillRectangle(baseX, 58, 14, 20);
         pm.setColor(new Color(0.87f, 0.7f, 0.56f, 1f));
-        pm.fillRectangle(baseX + 3, 48, 8, 10); // kepala
+        pm.fillRectangle(baseX + 3, 48, 8, 10);
         pm.setColor(new Color(0.2f, 0.15f, 0.1f, 1f));
-        pm.fillRectangle(baseX + 2, 46, 10, 4); // rambut
+        pm.fillRectangle(baseX + 2, 46, 10, 4);
     }
 }
