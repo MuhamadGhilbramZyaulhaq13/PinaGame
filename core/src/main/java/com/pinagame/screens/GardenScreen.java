@@ -12,13 +12,35 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
 import com.pinagame.core.DialogManager;
 
-
+/**
+ * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar block/robot
+ * Pina berjalan di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
+ *
+ * Ada 3 "mode" tergantung bagaimana screen ini dimasuki:
+ * - FIRST_ENCOUNTER: pertemuan paling pertama (Hari 1). Dialog belum pernah mulai
+ *   sama sekali. Pemain harus jalan mendekati Datt buat mulai dialog dari awal chapter.
+ * - DAY_BREAK_ENCOUNTER: "jeda hari" (mis. mulai Hari 2, Hari 3). Dialog sudah
+ *   sempat jalan sebelumnya lalu sengaja di-PAUSE oleh node DAY_BREAK di JSON.
+ *   Posisi Pina&Datt di-reset, layar fade-in dari hitam, dan pemain harus jalan
+ *   mendekat LAGI buat melanjutkan dialog hari itu (persis pola Hari 1, berulang).
+ * - AUTO_CONTINUE: kunjungan di tengah cerita yang SUDAH aktif (mis. Hari 4 balik
+ *   dari Instagram/kamar). Dialog langsung lanjut sendiri, Datt yang jalan
+ *   menghampiri Pina, tidak perlu trigger jalan-mendekat.
+ *
+ * Mode ditentukan dari kombinasi dialogManager.hasStarted() dan sceneId yang
+ * dikirim SceneManager -- lihat resolveEntryMode().
+ */
 public class GardenScreen extends BaseGameScreen {
+
+    private enum EntryMode { FIRST_ENCOUNTER, DAY_BREAK_ENCOUNTER, AUTO_CONTINUE }
 
     private static final float WORLD_W = 400f;
     private static final float WORLD_H = 260f;
-    private static final float SPEED = 90f;
-    private static final float DATT_WALK_SPEED = 150f;
+    private static final float SPEED = 90f; // kecepatan Pina, unit dunia/detik
+    private static final float DATT_WALK_SPEED = 150f; // Datt jalan lebih cepat, kesan "buru-buru"
+    private static final float FADE_DURATION = 0.7f;
+
+    private EntryMode entryMode;
 
     private float pinaX, pinaY;
     private float dattX, dattY;
@@ -46,28 +68,69 @@ public class GardenScreen extends BaseGameScreen {
         pinaTexture = buildCharacterTexture(new Color(0.55f, 0.75f, 0.85f, 1f), true);
         dattTexture = buildCharacterTexture(new Color(0.86f, 0.52f, 0.24f, 1f), false);
 
-        if (dialogManager.hasStarted()) {
-            pinaX = 180f;
-            pinaY = 55f;
-            dattX = 370f;
-            dattY = 220f;
-            dattTargetX = 215f;
-            dattTargetY = 95f;
-            dattWalking = true;
-            dialogTriggered = true;
-        } else {
-            pinaX = 60f;
-            pinaY = 50f;
-            dattX = 270f;
-            dattY = 128f;
-            dattWalking = false;
+        entryMode = resolveEntryMode();
+
+        switch (entryMode) {
+            case DAY_BREAK_ENCOUNTER:
+                // Hari baru dimulai -- posisi di-reset kayak Hari 1, tunggu pemain
+                // jalan mendekat lagi, layar fade-in dari hitam.
+                pinaX = 60f;
+                pinaY = 50f;
+                dattX = 270f;
+                dattY = 128f;
+                dattWalking = false;
+                dialogTriggered = false;
+                addFadeInOverlay(FADE_DURATION);
+                break;
+            case AUTO_CONTINUE:
+                // Kunjungan di tengah cerita yang sudah aktif (mis. Hari 4 balik
+                // dari Instagram) -- Datt yang jalan menghampiri Pina.
+                pinaX = 180f;
+                pinaY = 55f;
+                dattX = 370f;
+                dattY = 220f;
+                dattTargetX = 215f;
+                dattTargetY = 95f;
+                dattWalking = true;
+                dialogTriggered = true;
+                break;
+            case FIRST_ENCOUNTER:
+            default:
+                // Pertemuan paling pertama, Hari 1.
+                pinaX = 60f;
+                pinaY = 50f;
+                dattX = 270f;
+                dattY = 128f;
+                dattWalking = false;
+                dialogTriggered = false;
+                addFadeInOverlay(FADE_DURATION);
+                break;
         }
+    }
+
+    /**
+     * Tentukan mode masuk screen ini. Kalau dialog belum pernah mulai sama sekali
+     * -> pasti Hari 1. Kalau sudah pernah mulai DAN sceneId-nya adalah salah satu
+     * titik "jeda hari" (lihat chapter1.json, actionTarget node DAY_BREAK) -> mode
+     * jeda hari. Selain itu -> lanjut otomatis (kunjungan di tengah cerita).
+     */
+    private EntryMode resolveEntryMode() {
+        if (!dialogManager.hasStarted()) {
+            return EntryMode.FIRST_ENCOUNTER;
+        }
+        if (sceneId != null && sceneId.startsWith("GARDEN_DAY")) {
+            return EntryMode.DAY_BREAK_ENCOUNTER;
+        }
+        return EntryMode.AUTO_CONTINUE;
     }
 
     @Override
     public void render(float delta) {
         clearScreen();
 
+        // Pergerakan Pina tetap aktif kapan pun (biar tetap "hidup" walau dialog
+        // lagi jalan sendiri), tapi TRIGGER buat mulai/lanjut dialog cuma dicek
+        // kalau memang belum pernah trigger di screen ini.
         handleInput(delta);
         if (!dialogTriggered) {
             checkNpcTrigger();
@@ -77,7 +140,8 @@ public class GardenScreen extends BaseGameScreen {
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
 
-
+        // Skala kanvas dunia (400x260) supaya pas di lebar layar, tetap jaga rasio,
+        // rata atas -- sisa ruang bawah buat kotak dialog.
         float drawW = screenW;
         float drawH = screenW * (WORLD_H / WORLD_W);
         if (drawH > screenH) {
@@ -95,7 +159,7 @@ public class GardenScreen extends BaseGameScreen {
         drawCharacterSprite(pinaTexture, drawX, drawY, scale, pinaX, pinaY);
         batch.end();
 
-        super.render(delta);
+        super.render(delta); // gambar overlay kotak dialog (+ fade) di atas scene
     }
 
     @Override
@@ -107,7 +171,9 @@ public class GardenScreen extends BaseGameScreen {
         if (dattTexture != null) dattTexture.dispose();
     }
 
-
+    // ---------------------------------------------------------------------
+    // Pergerakan, jalan-nyamperin Datt, & trigger (koordinat dunia)
+    // ---------------------------------------------------------------------
 
     private void handleInput(float delta) {
         float dx = 0, dy = 0;
@@ -121,6 +187,7 @@ public class GardenScreen extends BaseGameScreen {
         pinaY = MathUtils.clamp(pinaY, 10f, WORLD_H - 10f);
     }
 
+    /** Gerakin Datt pelan-pelan menuju dattTargetX/Y kalau lagi dalam mode "jalan nyamperin". */
     private void updateDattWalk(float delta) {
         if (!dattWalking) return;
         float dx = dattTargetX - dattX;
@@ -138,13 +205,20 @@ public class GardenScreen extends BaseGameScreen {
     }
 
     private void checkNpcTrigger() {
-        if (dialogManager.hasStarted()) {
-
+        if (entryMode == EntryMode.AUTO_CONTINUE) {
+            // Mode ini gak butuh trigger jalan-mendekat -- Datt yang jalan sendiri.
             dialogTriggered = true;
             return;
         }
-        if (datNpcTrigger.contains(pinaX, pinaY)) {
-            dialogTriggered = true;
+        if (!datNpcTrigger.contains(pinaX, pinaY)) {
+            return;
+        }
+        dialogTriggered = true;
+        if (entryMode == EntryMode.DAY_BREAK_ENCOUNTER) {
+            // Lanjut dari titik JEDA (node DAY_BREAK), BUKAN restart ke awal chapter.
+            dialogManager.continueFromPause();
+        } else {
+            // FIRST_ENCOUNTER: mulai chapter dari node paling awal.
             dialogManager.startFrom(null);
         }
     }
@@ -199,7 +273,7 @@ public class GardenScreen extends BaseGameScreen {
         return tex;
     }
 
-
+    /** isRobot=true buat Pina (kepala abu-abu + "visor" biru), false buat manusia biasa. */
     private Texture buildCharacterTexture(Color shirtColor, boolean isRobot) {
         int w = 12, h = 18;
         Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);

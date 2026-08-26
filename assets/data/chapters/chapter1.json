@@ -39,6 +39,9 @@
       "text": "Hari itu berakhir dengan persahabatan baru dan satu Moon Melon raksasa di inventory Pina.",
       "next": "d1_011" },
     "d1_011": { "action": "SET_FLAG", "actionTarget": "chapter1_day1_complete",
+      "next": "d1_daybreak" },
+
+    "d1_daybreak": { "action": "DAY_BREAK", "actionTarget": "GARDEN_DAY2",
       "next": "d2_001" },
 
     "d2_001": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
@@ -65,6 +68,9 @@
     "d2_008": { "action": "SET_FLAG", "actionTarget": "day2_screenshot_taken",
       "next": "d2_009" },
     "d2_009": { "action": "SET_FLAG", "actionTarget": "chapter1_day2_complete",
+      "next": "d2_daybreak" },
+
+    "d2_daybreak": { "action": "DAY_BREAK", "actionTarget": "GARDEN_DAY3",
       "next": "d3_001" },
 
     "d3_001": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
@@ -181,14 +187,11 @@
     "d4_029": { "speaker": "Pina",
       "text": "HAHAHA anjay parah.",
       "next": "d4_030" },
-    "d4_030": { "speaker": "Narrator",
-      "text": "Mereka berdua pun bermutualan di Instagram.",
+    "d4_030": { "action": "SET_FLAG", "actionTarget": "chapter1_day4_complete",
       "next": "d4_031" },
     "d4_031": { "speaker": "Narrator",
-      "text": "Bersambung",
+      "text": "Mereka berdua pun bermutualan di Instagram.",
       "next": "d4_032" },
-    "d4_032": { "action": "SET_FLAG", "actionTarget": "chapter1_day4_complete",
-      "next": "d4_033" },
-    "d4_033": { "action": "END_CHAPTER" }
+    "d4_032": { "action": "END_CHAPTER" }
   }
 }
