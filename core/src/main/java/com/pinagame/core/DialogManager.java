@@ -190,6 +190,18 @@ public class DialogManager {
         }
     }
 
+    /**
+     * Reset total status dialog (currentNode, ended, graph). Dipakai GameMain saat
+     * pemain pilih "Mulai Baru" dari menu utama, SEBELUM chapter baru di-load --
+     * tanpa ini, currentNode lama masih nyangkut dan bikin hasStarted() salah
+     * ngasih tau screen kalau ini "kunjungan susulan", padahal ini awal permainan.
+     */
+    public void reset() {
+        this.currentNode = null;
+        this.ended = false;
+        this.graph = null;
+    }
+
     private void notifyLine(String speaker, String text) {
         for (DialogListener l : listeners) l.onLine(speaker, text);
     }

@@ -1,6 +1,7 @@
 package com.pinagame;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.pinagame.core.ChapterManager;
 import com.pinagame.core.DialogManager;
@@ -11,13 +12,17 @@ import com.pinagame.core.SceneManager.VisualMode;
 import com.pinagame.core.StoryFlags;
 import com.pinagame.core.dialog.DialogChoice;
 import com.pinagame.screens.GardenScreen;
+import com.pinagame.screens.MainMenuScreen;
 import com.pinagame.screens.PixelArtScreen;
 import com.pinagame.screens.SocialMediaScreen;
-import com.badlogic.gdx.Gdx;
 
 import java.util.List;
 
-
+/**
+ * Class utama libGDX (didaftarkan sebagai ApplicationListener oleh launcher
+ * Desktop/Android). Menyatukan seluruh manager dan menangani load save saat
+ * game dibuka serta auto-save saat progres berubah.
+ */
 public class GameMain extends Game implements SceneManager.SceneProvider {
 
     private SaveManager saveManager;
@@ -34,10 +39,12 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         flags = new StoryFlags(saveData.flags);
 
         dialogManager = new DialogManager(flags);
-
+        // Listener global: forward perubahan scene & akhir dialog ke level game,
+        // terlepas dari screen mana yang sedang aktif menampilkan teksnya.
         dialogManager.addListener(new DialogManager.DialogListener() {
             @Override public void onLine(String speaker, String text) {
-
+                // Auto-save tiap baris dialog baru tampil, supaya progres di TENGAH
+                // chapter pun tidak hilang kalau pemain menutup game tiba-tiba.
                 persist();
             }
             @Override public void onChoices(List<DialogChoice> choices) { /* ditangani per-screen (BaseGameScreen) */ }
@@ -52,17 +59,14 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         chapterManager = new ChapterManager(dialogManager, sceneManager);
         chapterManager.loadManifest("data/chapters_manifest.json");
 
-        int chapterToStart = saveData.currentChapter;
-        String resumeNode = saveData.currentDialogNode;
-        if (!chapterManager.hasChapter(chapterToStart)) {
-            Gdx.app.log("GameMain", "Chapter " + chapterToStart + " belum tersedia, "
-                + "fallback ke chapter " + chapterManager.getHighestAvailableChapterId());
-            chapterToStart = chapterManager.getHighestAvailableChapterId();
-            resumeNode = null;
-        }
-        chapterManager.startChapter(chapterToStart, resumeNode);
+        // Mulai dari menu utama dulu -- BUKAN langsung nyemplung ke chapter.
+        // saveManager.hasSave() dicek terpisah dari saveData (yang selalu punya
+        // objek valid walau file belum ada) supaya menu tau harus tampilin
+        // tombol "Lanjutkan" atau tidak.
+        setScreen(new MainMenuScreen(this, saveManager.hasSave(), saveData));
     }
 
+    /** Diimplementasikan dari SceneManager.SceneProvider — dipanggil tiap kali scene berganti. */
     @Override
     public Screen createScreen(VisualMode mode, String sceneId) {
         switch (mode) {
@@ -71,6 +75,34 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
             case SMARTPHONE_UI: return new SocialMediaScreen(this, dialogManager, sceneId);
             default: throw new IllegalArgumentException("Mode visual tidak dikenal: " + mode);
         }
+    }
+
+    /** Dipanggil MainMenuScreen ketika pemain pilih "Mulai Baru". */
+    public void startNewGame() {
+        saveData = new SaveData();
+        flags.clear();       // DialogManager pegang referensi StoryFlags yang SAMA, jadi di-kosongkan bukan diganti
+        dialogManager.reset(); // buang currentNode/ended lama, biar hasStarted() balik false
+        saveManager.save(saveData); // langsung timpa save lama di disk
+        beginChapterFlow(saveData.currentChapter, "");
+    }
+
+    /** Dipanggil MainMenuScreen ketika pemain pilih "Lanjutkan". */
+    public void continueGame() {
+        beginChapterFlow(saveData.currentChapter, saveData.currentDialogNode);
+    }
+
+    private void beginChapterFlow(int chapterToStart, String resumeNode) {
+        if (!chapterManager.hasChapter(chapterToStart)) {
+            // saveData menunjuk ke chapter yang belum dibuat (mis. baru tamat chapter
+            // terakhir yang ada, dan chapter berikutnya masih dalam pengembangan).
+            // Daripada layar kosong tanpa penjelasan, mainkan ulang chapter terakhir
+            // yang tersedia dari awal.
+            Gdx.app.log("GameMain", "Chapter " + chapterToStart + " belum tersedia, "
+                + "fallback ke chapter " + chapterManager.getHighestAvailableChapterId());
+            chapterToStart = chapterManager.getHighestAvailableChapterId();
+            resumeNode = null;
+        }
+        chapterManager.startChapter(chapterToStart, resumeNode);
     }
 
     private void onChapterFinished() {
@@ -83,8 +115,11 @@ public class GameMain extends Game implements SceneManager.SceneProvider {
         // chapterManager.startChapter() untuk chapter yang belum ada.
     }
 
-
-
+    /**
+     * Simpan progres ke disk. Panggil ini secara berkala — idealnya lewat listener
+     * tambahan di DialogManager yang trigger tiap kali goToNode() berpindah, bukan
+     * hanya di akhir chapter, supaya progres di tengah chapter pun tidak hilang.
+     */
     public void persist() {
         saveData.currentDialogNode = dialogManager.getCurrentNodeId();
         saveData.flags = flags.raw();

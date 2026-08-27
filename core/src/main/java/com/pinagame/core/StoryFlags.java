@@ -3,7 +3,13 @@ package com.pinagame.core;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * Wadah generik untuk menyimpan "flag" progres cerita (mis. "day2_screenshot_taken",
+ * "wrong_account_followed", dll). Disimpan sebagai String->String supaya:
+ * 1) Mudah diserialisasi ke JSON oleh SaveManager.
+ * 2) Tetap kompatibel ketika chapter baru menambahkan flag baru di masa depan —
+ *    kita tidak perlu mengubah struktur class, cukup tambah key baru.
+ */
 public class StoryFlags {
 
     private final HashMap<String, String> flags;
@@ -12,6 +18,7 @@ public class StoryFlags {
         this.flags = new HashMap<>();
     }
 
+    /** Dipakai saat load dari SaveData yang sudah ada. */
     public StoryFlags(Map<String, String> existing) {
         this.flags = existing != null ? new HashMap<>(existing) : new HashMap<>();
     }
@@ -41,6 +48,12 @@ public class StoryFlags {
         return flags.containsKey(key);
     }
 
+    /** Hapus semua flag -- dipakai saat pemain pilih "Mulai Baru" dari menu utama. */
+    public void clear() {
+        flags.clear();
+    }
+
+    /** Referensi mentah — dipakai SaveManager untuk menulis balik ke SaveData sebelum save(). */
     public HashMap<String, String> raw() {
         return flags;
     }
