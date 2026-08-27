@@ -122,19 +122,10 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
 
     /** Ganti implementasi ini untuk load skin.json asli dari assets/ui/. */
     protected Skin loadSkin() {
-        // Placeholder: di project nyata, load com.badlogic.gdx.files.FileHandle skin.json
-        // return new Skin(Gdx.files.internal("ui/skin.json"));
-        throw new UnsupportedOperationException(
-            "Sediakan Skin (mis. uiskin default libGDX) sebelum build UI dialog.");
+        return new Skin(Gdx.files.internal("ui/uiskin.json"));
     }
 
-    /**
-     * Overlay hitam penuh layar yang otomatis fade-out begitu screen ini tampil --
-     * efek "napas" transisi. Panggil ini di show() SETELAH buildDialogueUI(), supaya
-     * ditambahkan paling atas (lapisan terdepan) dan menutupi scene sesaat sebelum
-     * memudar. Tidak menghalangi klik sama sekali (Touchable.disabled) -- durasi
-     * transisi cuma visual, tidak pernah bikin pemain "kehilangan" klik.
-     */
+
     protected void addFadeInOverlay(float durationSeconds) {
         Image overlay = new Image(skin.getDrawable("white"));
         overlay.setColor(Color.BLACK);

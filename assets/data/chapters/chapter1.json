@@ -192,6 +192,9 @@
     "d4_031": { "speaker": "Narrator",
       "text": "Mereka berdua pun bermutualan di Instagram.",
       "next": "d4_032" },
-    "d4_032": { "action": "END_CHAPTER" }
+    "d4_032": { "speaker": "Narrator",
+      "text": "Bersambung.",
+      "next": "d4_033" },
+    "d4_033": { "action": "END_CHAPTER" }
   }
 }
