@@ -9,6 +9,16 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.pinagame.core.DialogManager;
 
+/**
+ * Scene dunia nyata bergaya pixel art retro (mis. Datt & Heri duduk di kamar
+ * depan laptop). Digambar dengan cara "lukis di kanvas kecil (160x90px), lalu
+ * diperbesar TANPA smoothing (Nearest filter)" -- teknik umum buat dapet efek
+ * blocky/pixelated tanpa perlu file gambar asli.
+ *
+ * Gampang diganti ke sprite/gambar sungguhan nanti: cukup ganti isi
+ * buildRoomTexture() jadi load Texture dari assets, bukan gambar Pixmap manual --
+ * struktur render() (skala & posisi ke layar) tidak perlu diubah sama sekali.
+ */
 public class PixelArtScreen extends BaseGameScreen {
 
     private static final int CANVAS_W = 160;
@@ -27,7 +37,8 @@ public class PixelArtScreen extends BaseGameScreen {
         buildDialogueUI();
         batch = new SpriteBatch();
         roomTexture = buildRoomTexture();
-
+        // Sama seperti sebelumnya: screen ini selalu dimasuki lewat CHANGE_SCENE
+        // di tengah dialog yang sudah berjalan, jadi tidak perlu startFrom() manual.
     }
 
     @Override
@@ -37,8 +48,8 @@ public class PixelArtScreen extends BaseGameScreen {
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
 
-
-
+        // Skala kanvas kecil supaya pas memenuhi lebar layar, tetap jaga rasio
+        // aslinya (160:90), rata atas -- sisa ruang bawah buat kotak dialog.
         float drawW = screenW;
         float drawH = screenW * ((float) CANVAS_H / CANVAS_W);
         if (drawH > screenH) {
@@ -53,7 +64,7 @@ public class PixelArtScreen extends BaseGameScreen {
         batch.draw(roomTexture, drawX, drawY, drawW, drawH);
         batch.end();
 
-        super.render(delta);
+        super.render(delta); // gambar overlay kotak dialog di atas scene
     }
 
     @Override
@@ -98,8 +109,8 @@ public class PixelArtScreen extends BaseGameScreen {
         pm.setColor(new Color(0.45f, 0.75f, 0.95f, 1f));
         pm.fillRectangle(80, 42, 12, 10);
 
-        // Karakter Datt (kiri) & Heri (kanan), duduk di depan meja
-        drawSimpleCharacter(pm, 58, new Color(0.86f, 0.52f, 0.24f, 1f));
+        // Karakter Datt (kiri, desain detail) & Heri (kanan, tetap generik), duduk di depan meja
+        drawDattCharacter(pm, 58);
         drawSimpleCharacter(pm, 100, new Color(0.32f, 0.62f, 0.52f, 1f));
 
         Texture tex = new Texture(pm);
@@ -110,10 +121,37 @@ public class PixelArtScreen extends BaseGameScreen {
 
     private void drawSimpleCharacter(Pixmap pm, int baseX, Color shirtColor) {
         pm.setColor(shirtColor);
-        pm.fillRectangle(baseX, 58, 14, 20);
+        pm.fillRectangle(baseX, 58, 14, 20); // badan
         pm.setColor(new Color(0.87f, 0.7f, 0.56f, 1f));
-        pm.fillRectangle(baseX + 3, 48, 8, 10);
+        pm.fillRectangle(baseX + 3, 48, 8, 10); // kepala
         pm.setColor(new Color(0.2f, 0.15f, 0.1f, 1f));
+        pm.fillRectangle(baseX + 2, 46, 10, 4); // rambut
+    }
+
+    /**
+     * Datt versi detail: rambut coklat disisir ke satu sisi, jaket hitam terbuka
+     * dengan kaos biru keliatan di tengah -- sama seperti versi di GardenScreen,
+     * supaya tampilannya konsisten di kedua scene.
+     */
+    private void drawDattCharacter(Pixmap pm, int baseX) {
+        Color skin = new Color(0.87f, 0.72f, 0.58f, 1f);
+        Color hair = new Color(0.35f, 0.22f, 0.13f, 1f);
+        Color jacket = new Color(0.12f, 0.12f, 0.14f, 1f);
+        Color shirt = new Color(0.15f, 0.5f, 0.85f, 1f);
+
+        // Badan: jaket hitam terbuka, kaos biru keliatan di tengah
+        pm.setColor(jacket);
+        pm.fillRectangle(baseX, 58, 14, 20);
+        pm.setColor(shirt);
+        pm.fillRectangle(baseX + 5, 58, 4, 20);
+
+        // Kepala
+        pm.setColor(skin);
+        pm.fillRectangle(baseX + 3, 48, 8, 10);
+
+        // Rambut coklat, disisir ke satu sisi
+        pm.setColor(hair);
         pm.fillRectangle(baseX + 2, 46, 10, 4);
+        pm.fillRectangle(baseX + 8, 49, 3, 3); // helai nyamping
     }
 }
