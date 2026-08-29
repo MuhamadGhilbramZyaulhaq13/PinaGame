@@ -21,7 +21,7 @@ import java.util.List;
 
 public class SocialMediaScreen extends BaseGameScreen {
 
-    public enum UISubScreen { HOME_FEED, SEARCH, PROFILE_WRONG, PROFILE_CORRECT, CHAT }
+    public enum UISubScreen { HOME_FEED, SEARCH, PROFILE_WRONG, PROFILE_CORRECT, CHAT, POST_SCREENSHOT }
 
     private UISubScreen currentSubScreen;
     private final List<Texture> generatedTextures = new ArrayList<>();
@@ -36,6 +36,7 @@ public class SocialMediaScreen extends BaseGameScreen {
         if (sceneId.contains("PROFILE_WRONG")) return UISubScreen.PROFILE_WRONG;
         if (sceneId.contains("PROFILE_CORRECT")) return UISubScreen.PROFILE_CORRECT;
         if (sceneId.contains("CHAT")) return UISubScreen.CHAT;
+        if (sceneId.contains("POST_SCREENSHOT")) return UISubScreen.POST_SCREENSHOT;
         if (sceneId.contains("SEARCH")) return UISubScreen.SEARCH;
         return UISubScreen.HOME_FEED;
     }
@@ -112,9 +113,78 @@ public class SocialMediaScreen extends BaseGameScreen {
             case PROFILE_WRONG: return buildProfileScreen(false);
             case PROFILE_CORRECT: return buildProfileScreen(true);
             case CHAT: return buildChatScreen();
+            case POST_SCREENSHOT: return buildPostScreenshotScreen();
             case HOME_FEED:
             default: return buildHomeFeedScreen();
         }
+    }
+    private Table buildPostScreenshotScreen() {
+        Table content = new Table();
+        content.top().pad(10);
+        tapAdvances(content);
+
+        // Header ala postingan IG: avatar + username
+        Table header = new Table();
+        Image avatar = avatarPlaceholder(28, new Color(0.65f, 0.55f, 0.9f, 1f));
+        tapAdvances(avatar);
+        header.add(avatar).size(28).padRight(8);
+        Label username = new Label("mondu.ck", skin);
+        username.setColor(Color.BLACK);
+        tapAdvances(username);
+        header.add(username).left();
+        tapAdvances(header);
+        content.add(header).left().growX().padBottom(8).row();
+
+        // "Foto"-nya: screenshot chat in-game, latar HIJAU ala kebun biar kerasa
+        // ini beneran diambil dari dalam game, bukan kotak abu-abu polos.
+        Table photoFrame = new Table();
+        photoFrame.setBackground(solidDrawable(new Color(0.42f, 0.62f, 0.34f, 1f)));
+        photoFrame.pad(10);
+        tapAdvances(photoFrame);
+
+        Table bubble1 = new Table();
+        bubble1.setBackground(solidDrawable(new Color(0.97f, 0.97f, 0.97f, 0.95f)));
+        Label q = new Label("Berapa akar dari 1444?", skin);
+        q.setColor(Color.BLACK);
+        tapAdvances(q);
+        bubble1.add(q).pad(6);
+        tapAdvances(bubble1);
+        photoFrame.add(bubble1).left().padBottom(6).row();
+
+        Table bubble2 = new Table();
+        bubble2.setBackground(solidDrawable(new Color(0.6f, 0.8f, 0.98f, 0.95f)));
+        Label a = new Label("Hmm... 38! Gampang itu mah.", skin);
+        a.setColor(Color.BLACK);
+        tapAdvances(a);
+        bubble2.add(a).pad(6);
+        tapAdvances(bubble2);
+        photoFrame.add(bubble2).right().row();
+
+        content.add(photoFrame).growX().height(140).padBottom(8).row();
+
+        // Baris ikon versi teks (aman dari font yang gak dukung emoji)
+        Table iconRow = new Table();
+        Label likeIcon = new Label("[suka]", skin);
+        likeIcon.setColor(Color.DARK_GRAY);
+        tapAdvances(likeIcon);
+        Label commentIcon = new Label("[komentar]", skin);
+        commentIcon.setColor(Color.DARK_GRAY);
+        tapAdvances(commentIcon);
+        Label shareIcon = new Label("[bagikan]", skin);
+        shareIcon.setColor(Color.DARK_GRAY);
+        tapAdvances(shareIcon);
+        iconRow.add(likeIcon).padRight(12);
+        iconRow.add(commentIcon).padRight(12);
+        iconRow.add(shareIcon);
+        tapAdvances(iconRow);
+        content.add(iconRow).left().padBottom(6).row();
+
+        Label likeCount = new Label("24 suka", skin);
+        likeCount.setColor(Color.BLACK);
+        tapAdvances(likeCount);
+        content.add(likeCount).left();
+
+        return content;
     }
 
     private Table buildSearchScreen() {

@@ -73,7 +73,7 @@ public class GardenScreen extends BaseGameScreen {
         buildDialogueUI();
         batch = new SpriteBatch();
         gardenTexture = buildGardenTexture();
-        pinaTexture = buildCharacterTexture(new Color(0.55f, 0.75f, 0.85f, 1f), true);
+        pinaTexture = buildPinaTexture();
         dattTexture = buildDattTexture();
 
         entryMode = resolveEntryMode();
@@ -309,26 +309,42 @@ public class GardenScreen extends BaseGameScreen {
         return tex;
     }
 
-    private Texture buildCharacterTexture(Color shirtColor, boolean isRobot) {
-        int w = 12, h = 18;
+    private Texture buildPinaTexture() {
+        int w = 16, h = 24;
         Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);
 
-        Color headColor = isRobot
-            ? new Color(0.8f, 0.82f, 0.86f, 1f)
-            : new Color(0.87f, 0.7f, 0.56f, 1f);
-        pm.setColor(headColor);
-        pm.fillRectangle(1, 0, w - 2, 6);
+        Color skin = new Color(0.92f, 0.78f, 0.68f, 1f);
+        Color hair = new Color(0.55f, 0.45f, 0.38f, 1f);
+        Color blouse = new Color(0.88f, 0.88f, 0.9f, 1f);
+        Color blouseAccent = new Color(0.62f, 0.62f, 0.68f, 1f);
+        Color skirt = new Color(0.15f, 0.2f, 0.55f, 1f);
+        Color shoes = new Color(0.92f, 0.92f, 0.92f, 1f);
 
-        if (isRobot) {
-            pm.setColor(new Color(0.15f, 0.55f, 0.85f, 1f));
-            pm.fillRectangle(2, 2, w - 4, 2);
-        } else {
-            pm.setColor(new Color(0.2f, 0.15f, 0.1f, 1f));
-            pm.fillRectangle(1, 0, w - 2, 2);
-        }
+        // Sepatu putih
+        pm.setColor(shoes);
+        pm.fillRectangle(3, 22, 10, 2);
 
-        pm.setColor(shirtColor);
-        pm.fillRectangle(0, 6, w, 12);
+        // Rok biru
+        pm.setColor(skirt);
+        pm.fillRectangle(2, 17, 12, 5);
+
+        // Atasan putih/abu dengan sedikit aksen motif
+        pm.setColor(blouse);
+        pm.fillRectangle(2, 11, 12, 6);
+        pm.setColor(blouseAccent);
+        pm.fillRectangle(6, 13, 4, 2);
+
+        // Wajah
+        pm.setColor(skin);
+        pm.fillRectangle(4, 5, 8, 6);
+
+        // Rambut atas
+        pm.setColor(hair);
+        pm.fillRectangle(1, 0, 14, 5);
+
+        // Rambut panjang di kedua sisi, menutupi bahu
+        pm.fillRectangle(0, 4, 4, 11);
+        pm.fillRectangle(12, 4, 4, 11);
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);

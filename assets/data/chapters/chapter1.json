@@ -124,16 +124,18 @@
       "text": "WHAT. Buset kamu pinter banget buat anak SD!!",
       "next": "d2_007"
     },
-    "d2_007": {
-      "speaker": "Narrator",
+    "d2_007": { "speaker": "Narrator",
       "text": "Pina diam-diam nge-screenshot chat itu buat diposting nanti di second account IG-nya.",
-      "next": "d2_008"
-    },
-    "d2_008": {
-      "action": "SET_FLAG",
-      "actionTarget": "day2_screenshot_taken",
+      "next": "d2_post_transition" },
+    "d2_post_transition": { "action": "CHANGE_SCENE", "actionTarget": "SOCIAL_POST_SCREENSHOT",
+      "next": "d2_post_caption" },
+    "d2_post_caption": { "speaker": "Narrator", "scene": "SOCIAL_POST_SCREENSHOT",
+      "text": "Ketemu bocil SD random di roblox yg pengetahuannya luas bangett (aku gpercaya dia msh SD fr)... kita sambil ngobrol 2 jaman sambil berkebun",
+      "next": "d2_008" },
+    "d2_008": { "action": "SET_FLAG", "actionTarget": "day2_screenshot_taken",
       "next": "d2_009"
     },
+
     "d2_009": {
       "action": "SET_FLAG",
       "actionTarget": "chapter1_day2_complete",
