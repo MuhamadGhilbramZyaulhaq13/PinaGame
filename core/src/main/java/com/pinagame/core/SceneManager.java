@@ -27,12 +27,16 @@ public class SceneManager {
     }
 
     public void changeTo(VisualMode mode, String sceneId) {
+        Screen oldScreen = game.getScreen();
         this.currentMode = mode;
         this.currentSceneId = sceneId;
         Screen screen = provider.createScreen(mode, sceneId);
 
 
         game.setScreen(screen);
+        if (oldScreen != null) {
+            oldScreen.dispose();
+        }
     }
 
     public void onDialogSceneChangeRequested(String sceneId) {
