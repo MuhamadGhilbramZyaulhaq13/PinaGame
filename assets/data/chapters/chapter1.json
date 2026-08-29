@@ -2,199 +2,397 @@
   "chapter": 1,
   "startNode": "d1_001",
   "nodes": {
-
-    "d1_001": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
+    "d1_001": {
+      "speaker": "Narrator",
+      "scene": "GARDEN_MAIN",
       "text": "Pina berjalan menyusuri kebun 'Grow a Garden' sore itu, sambil melihat-lihat kebun besar milik pemain lain.",
-      "next": "d1_002" },
-    "d1_002": { "speaker": "Narrator",
+      "next": "d1_002"
+    },
+    "d1_002": {
+      "speaker": "Narrator",
       "text": "Di dekat petak melon, seorang pemain lain sedang  memandangi buah raksasa berwarna ungu kebiruan.",
-      "next": "d1_003" },
-    "d1_003": { "speaker": "Datt",
+      "next": "d1_wait_approach"
+    },
+    "d1_003": {
+      "speaker": "Datt",
       "text": "Hai",
-      "next": "d1_004" },
-    "d1_004": { "speaker": "Pina",
+      "next": "d1_004"
+    },
+    "d1_004": {
+      "speaker": "Pina",
       "text": "Hai, Itu Moon Melon?? Gila gede banget",
-      "next": "d1_005" },
-    "d1_005": { "speaker": "Datt",
+      "next": "d1_005"
+    },
+    "d1_005": {
+      "speaker": "Datt",
       "text": "Iya. kamu baru di sini ya? Belum pernah liat kamu sbelumnya di sekitar kebun ini.",
-      "next": "d1_006" },
-    "d1_006": { "speaker": "Pina",
+      "next": "d1_006"
+    },
+    "d1_006": {
+      "speaker": "Pina",
       "text": "Iya baru! Nama aku Pina.",
-      "next": "d1_007" },
-    "d1_007": { "speaker": "Datt",
+      "next": "d1_007"
+    },
+    "d1_007": {
+      "speaker": "Datt",
       "text": "Aku Datt. Nih, buat kamu aja Moon Melon-nya, aku udah punya banyak stok.",
+      "next": "d1_007a"
+    },
+    "d1_007a": {
+      "speaker": "Pina",
       "choices": [
-        { "text": "Wih beneran? Makasih banyak!!", "next": "d1_008", "setFlag": "d1_pina_grateful" },
-        { "text": "Eh gapapa nih? Kayaknya susah menanamnya...", "next": "d1_008b" }
-      ] },
-    "d1_008": { "speaker": "Datt",
+        {
+          "text": "Wih beneran? Makasih banyak!!",
+          "next": "d1_008",
+          "setFlag": "d1_pina_grateful"
+        },
+        {
+          "text": "Eh gapapa nih? Kayaknya susah menanamnya...",
+          "next": "d1_008b"
+        }
+      ]
+    },
+    "d1_008": {
+      "speaker": "Pina",
+      "text": "Wih beneran? Makasih banyak!!",
+      "next": "d1_008c"
+    },
+    "d1_008b": {
+      "speaker": "Pina",
+      "text": "Eh gapapa nih? Kayaknya susah menanamnya...",
+      "next": "d1_008d"
+    },
+
+    "d1_008c": {
+      "speaker": "Datt",
       "text": "Santai, anggep aja tanda perkenalan. Kita temenan ya mulai sekarang.",
-      "next": "d1_009" },
-    "d1_008b": { "speaker": "Datt",
+      "next": "d1_009"
+    },
+    "d1_008d": {
+      "speaker": "Datt",
       "text": "Gapapa, santai aja. Anggep tanda perkenalan. Kita temenan ya.",
-      "next": "d1_009" },
-    "d1_009": { "action": "SET_FLAG", "actionTarget": "day1_friends_confirmed",
-      "next": "d1_010" },
-    "d1_010": { "speaker": "Narrator",
+      "next": "d1_009"
+    },
+    "d1_009": {
+      "action": "SET_FLAG",
+      "actionTarget": "day1_friends_confirmed",
+      "next": "d1_010"
+    },
+    "d1_010": {
+      "speaker": "Narrator",
       "text": "Hari itu berakhir dengan persahabatan baru dan satu Moon Melon raksasa di inventory Pina.",
-      "next": "d1_011" },
-    "d1_011": { "action": "SET_FLAG", "actionTarget": "chapter1_day1_complete",
-      "next": "d1_daybreak" },
-
-    "d1_daybreak": { "action": "DAY_BREAK", "actionTarget": "GARDEN_DAY2",
-      "next": "d2_001" },
-
-    "d2_001": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
+      "next": "d1_011"
+    },
+    "d1_011": {
+      "action": "SET_FLAG",
+      "actionTarget": "chapter1_day1_complete",
+      "next": "d1_daybreak"
+    },
+    "d1_daybreak": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "GARDEN_DAY2",
+      "next": "d2_001"
+    },
+    "d2_001": {
+      "speaker": "Narrator",
+      "scene": "GARDEN_MAIN",
       "text": "Keesokan harinya, Datt mengajak Pina ngobrol lagi di dekat gudang kebun.",
-      "next": "d2_002" },
-    "d2_002": { "speaker": "Datt",
+      "next": "d2_wait_approach"
+    },
+    "d2_002": {
+      "speaker": "Datt",
       "text": "Eh Pina, kamu jago matematika gak? Coba deh tanya-tanya  aku, kayaknya aku jago deh hehe.",
-      "next": "d2_003" },
-    "d2_003": { "speaker": "Pina",
+      "next": "d2_003"
+    },
+    "d2_003": {
+      "speaker": "Pina",
       "text": "Yakin? Oke deh, coba: berapa akar dari 1444?",
-      "next": "d2_004" },
-    "d2_004": { "speaker": "Narrator",
+      "next": "d2_004"
+    },
+    "d2_004": {
+      "speaker": "Narrator",
       "text": "(Datt sebenarnya mahasiswa, tapi lagi iseng pengen ngerjain Pina jadi kayak anak SD jenius.)",
-      "next": "d2_005" },
-    "d2_005": { "speaker": "Datt",
+      "next": "d2_005"
+    },
+    "d2_005": {
+      "speaker": "Datt",
       "text": "Hmm... 38! Gampang itu mah.",
-      "next": "d2_006" },
-    "d2_006": { "speaker": "Pina",
+      "next": "d2_006"
+    },
+    "d2_006": {
+      "speaker": "Pina",
       "text": "WHAT. Buset kamu pinter banget buat anak SD!!",
-      "next": "d2_007" },
-    "d2_007": { "speaker": "Narrator",
+      "next": "d2_007"
+    },
+    "d2_007": {
+      "speaker": "Narrator",
       "text": "Pina diam-diam nge-screenshot chat itu buat diposting nanti di second account IG-nya.",
-      "next": "d2_008" },
-    "d2_008": { "action": "SET_FLAG", "actionTarget": "day2_screenshot_taken",
-      "next": "d2_009" },
-    "d2_009": { "action": "SET_FLAG", "actionTarget": "chapter1_day2_complete",
-      "next": "d2_daybreak" },
-
-    "d2_daybreak": { "action": "DAY_BREAK", "actionTarget": "GARDEN_DAY3",
-      "next": "d3_001" },
-
-    "d3_001": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
+      "next": "d2_008"
+    },
+    "d2_008": {
+      "action": "SET_FLAG",
+      "actionTarget": "day2_screenshot_taken",
+      "next": "d2_009"
+    },
+    "d2_009": {
+      "action": "SET_FLAG",
+      "actionTarget": "chapter1_day2_complete",
+      "next": "d2_daybreak"
+    },
+    "d2_daybreak": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "GARDEN_DAY3",
+      "next": "d3_001"
+    },
+    "d3_001": {
+      "speaker": "Narrator",
+      "scene": "GARDEN_MAIN",
       "text": "Hari ketiga, obrolan berlanjut ke topik yang lebih personal.",
-      "next": "d3_002" },
-    "d3_002": { "speaker": "Datt",
+      "next": "d3_wait_approach"
+    },
+    "d3_002": {
+      "speaker": "Datt",
       "text": "Eh ngomong-ngomong, kamu sekolah/kuliah di mana emang?",
-      "next": "d3_003" },
-    "d3_003": { "speaker": "Pina",
+      "next": "d3_003"
+    },
+    "d3_003": {
+      "speaker": "Pina",
       "choices": [
-        { "text": "Aku masih nunggu pengumuman hari pertama masuk UPI nih", "next": "d3_004" },
-        { "text": "(jawab agak canggung dulu)", "next": "d3_004b" }
-      ] },
-    "d3_004": { "speaker": "Pina",
+        {
+          "text": "Aku masih nunggu pengumuman hari pertama masuk UPI nih",
+          "next": "d3_004"
+        },
+        {
+          "text": "(jawab agak canggung dulu)",
+          "next": "d3_004b"
+        }
+      ]
+    },
+    "d3_004": {
+      "speaker": "Pina",
       "text": "Aku masih nunggu hari pertama masuk UPI nih, aku sudah keterima, tinggal tunngu masuknya aja.",
-      "next": "d3_005" },
-    "d3_004b": { "speaker": "Pina",
+      "next": "d3_005"
+    },
+    "d3_004b": {
+      "speaker": "Pina",
       "text": "Hmm masih nunggu info ospek kampus upi.",
-      "next": "d3_005" },
-    "d3_005": { "speaker": "Narrator",
+      "next": "d3_005"
+    },
+    "d3_005": {
+      "speaker": "Narrator",
       "text": "(Datt diam sejenak. Ada rasa insecure yang tiba-tiba muncul -- dia kuliah di kampus kecil di kabupaten, jauh dari nama besar seperti UPI.)",
-      "next": "d3_006" },
-    "d3_006": { "action": "SET_FLAG", "actionTarget": "datt_insecure_triggered",
-      "next": "d3_007" },
-    "d3_007": { "speaker": "Datt",
+      "next": "d3_006"
+    },
+    "d3_006": {
+      "action": "SET_FLAG",
+      "actionTarget": "datt_insecure_triggered",
+      "next": "d3_007"
+    },
+    "d3_007": {
+      "speaker": "Datt",
       "text": "Oh keren dong... kamu hebat",
-      "next": "d3_008" },
-    "d3_008": { "speaker": "Pina",
+      "next": "d3_008"
+    },
+    "d3_008": {
+      "speaker": "Pina",
       "text": "iya, kamu semangat ya belajarnya biar cita cita kamu tercapai!",
-      "next": "d3_009" },
-    "d3_009": { "action": "SET_FLAG", "actionTarget": "chapter1_day3_complete",
-      "next": "d4_001" },
-
-    "d4_001": { "action": "CHANGE_SCENE", "actionTarget": "PIXEL_ROOM_DATT_HERI",
-      "next": "d4_002" },
-    "d4_002": { "speaker": "Narrator", "scene": "PIXEL_ROOM_DATT_HERI",
+      "next": "d3_009"
+    },
+    "d3_009": {
+      "action": "SET_FLAG",
+      "actionTarget": "chapter1_day3_complete",
+      "next": "d4_001"
+    },
+    "d4_001": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "PIXEL_ROOM_DATT_HERI",
+      "next": "d4_002"
+    },
+    "d4_002": {
+      "speaker": "Narrator",
+      "scene": "PIXEL_ROOM_DATT_HERI",
       "text": "Malam harinya, Datt lagi nongkrong di kamar kost bareng Heri, sahabatnya, di depan laptop.",
-      "next": "d4_003" },
-    "d4_003": { "speaker": "Heri",
+      "next": "d4_003"
+    },
+    "d4_003": {
+      "speaker": "Heri",
       "text": "Brayy",
-      "next": "d4_004" },
-    "d4_004": { "speaker": "Datt",
+      "next": "d4_004"
+    },
+    "d4_004": {
+      "speaker": "Datt",
       "text": "Ngapa mayy?",
-      "next": "d4_005" },
-    "d4_005": { "speaker": "Datt",
+      "next": "d4_005"
+    },
+    "d4_005": {
+      "speaker": "Datt",
       "text": "Aku mau scrolling",
-      "next": "d4_006" },
-    "d4_006": { "action": "CHANGE_SCENE", "actionTarget": "SOCIAL_SEARCH_WRONG_ACCOUNT",
-      "next": "d4_007" },
-    "d4_007": { "speaker": "Narrator", "scene": "SOCIAL_SEARCH_WRONG_ACCOUNT",
+      "next": "d4_006"
+    },
+    "d4_006": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "SOCIAL_SEARCH_WRONG_ACCOUNT",
+      "next": "d4_007"
+    },
+    "d4_007": {
+      "speaker": "Narrator",
+      "scene": "SOCIAL_SEARCH_WRONG_ACCOUNT",
       "text": "Datt membuka Instagram dan mengetik 'safinamn' di kolom pencarian.Pina pada hari kemarin memberikan username instagramnya.",
-      "next": "d4_008" },
-    "d4_008": { "speaker": "Narrator",
+      "next": "d4_008"
+    },
+    "d4_008": {
+      "speaker": "Narrator",
       "text": "Tapi karena kurang teliti, dia malah nge-tap akun lain yang muncul duluan di hasil pencarian.",
-      "next": "d4_009" },
-    "d4_009": { "action": "CHANGE_SCENE", "actionTarget": "SOCIAL_PROFILE_WRONG",
-      "next": "d4_010" },
-    "d4_010": { "speaker": "Narrator", "scene": "SOCIAL_PROFILE_WRONG",
+      "next": "d4_009"
+    },
+    "d4_009": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "SOCIAL_PROFILE_WRONG",
+      "next": "d4_010"
+    },
+    "d4_010": {
+      "speaker": "Narrator",
+      "scene": "SOCIAL_PROFILE_WRONG",
       "text": "Akun itu private, followernya 12 ribu. Datt langsung mikir: 'Anjir, temen baru aku selebgram??'",
-      "next": "d4_011" },
-    "d4_011": { "speaker": "Datt",
+      "next": "d4_011"
+    },
+    "d4_011": {
+      "speaker": "Datt",
       "text": "(Dengan ragu datt bergumam) Gapapa kali ya may, buat temen chatan aja",
-      "next": "d4_012" },
-    "d4_012": { "speaker": "Heri",
+      "next": "d4_012"
+    },
+    "d4_012": {
+      "speaker": "Heri",
       "text": "(Heri yang sedang kelelahan menjawab dengan asal) Gapapa bray",
-      "next": "d4_013" },
-    "d4_013": { "speaker": "Datt",
+      "next": "d4_013"
+    },
+    "d4_013": {
+      "speaker": "Datt",
       "choices": [
-        { "text": "Jirlah", "next": "d4_014", "setFlag": "d4_followed_confidently" },
-        { "text": "Aman kali yeh", "next": "d4_014b" }
-      ] },
-    "d4_014": { "speaker": "Datt",
+        {
+          "text": "Jirlah",
+          "next": "d4_014",
+          "setFlag": "d4_followed_confidently"
+        },
+        {
+          "text": "Aman kali yeh",
+          "next": "d4_014b"
+        }
+      ]
+    },
+    "d4_014": {
+      "speaker": "Datt",
       "text": "...",
-      "next": "d4_015" },
-    "d4_014b": { "speaker": "Datt",
+      "next": "d4_015"
+    },
+    "d4_014b": {
+      "speaker": "Datt",
       "text": "(Datt berkata dalam hati) Ga akan difollback.",
-      "next": "d4_015" },
-    "d4_015": { "action": "SET_FLAG", "actionTarget": "wrong_account_followed",
-      "next": "d4_016" },
-    "d4_016": { "action": "CHANGE_SCENE", "actionTarget": "GARDEN_MAIN",
-      "next": "d4_017" },
-    "d4_017": { "speaker": "Narrator", "scene": "GARDEN_MAIN",
+      "next": "d4_015"
+    },
+    "d4_015": {
+      "action": "SET_FLAG",
+      "actionTarget": "wrong_account_followed",
+      "next": "d4_016"
+    },
+    "d4_016": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "GARDEN_MAIN",
+      "next": "d4_017"
+    },
+    "d4_017": {
+      "speaker": "Narrator",
+      "scene": "GARDEN_MAIN",
       "text": "Besoknya di game, Datt buru-buru nyamperin Pina.",
-      "next": "d4_018" },
-    "d4_018": { "speaker": "Datt",
+      "next": "d4_018"
+    },
+    "d4_018": {
+      "speaker": "Datt",
       "text": "hai, aku udah follow kamu di IG tau, kok kamu gak follback?",
-      "next": "d4_019" },
-    "d4_019": { "speaker": "Pina",
+      "next": "d4_019"
+    },
+    "d4_019": {
+      "speaker": "Pina",
       "text": "Hah? Follow akun apaan? Aku belum liat notif follow dari kamu sama sekali.",
-      "next": "d4_020" },
-    "d4_020": { "speaker": "Datt",
+      "next": "d4_020"
+    },
+    "d4_020": {
+      "speaker": "Datt",
       "text": "Lah kan aku follow yang kamu kasih tau, 'safinamn'...",
-      "next": "d4_021" },
-    "d4_021": { "speaker": "Pina",
+      "next": "d4_021"
+    },
+    "d4_021": {
+      "speaker": "Pina",
       "text": "Coba liat lagi deh username-nya, jangan-jangan salah akun.",
-      "next": "d4_022" },
-    "d4_022": { "action": "CHANGE_SCENE", "actionTarget": "SOCIAL_SEARCH_CORRECT",
-      "next": "d4_023" },
-    "d4_023": { "speaker": "Narrator", "scene": "SOCIAL_SEARCH_CORRECT",
+      "next": "d4_022"
+    },
+    "d4_022": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "SOCIAL_SEARCH_CORRECT",
+      "next": "d4_023"
+    },
+    "d4_023": {
+      "speaker": "Narrator",
+      "scene": "SOCIAL_SEARCH_CORRECT",
       "text": "Datt cek lagi pelan-pelan, ternyata dia salah ketik satu huruf semalam.",
-      "next": "d4_024" },
-    "d4_024": { "action": "CHANGE_SCENE", "actionTarget": "SOCIAL_PROFILE_CORRECT",
-      "next": "d4_025" },
-    "d4_025": { "speaker": "Narrator", "scene": "SOCIAL_PROFILE_CORRECT",
+      "next": "d4_024"
+    },
+    "d4_024": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "SOCIAL_PROFILE_CORRECT",
+      "next": "d4_025"
+    },
+    "d4_025": {
+      "speaker": "Narrator",
+      "scene": "SOCIAL_PROFILE_CORRECT",
       "text": "Jirlah item.",
-      "next": "d4_026" },
-    "d4_026": { "action": "SET_FLAG", "actionTarget": "correct_account_found",
-      "next": "d4_027" },
-    "d4_027": { "action": "CHANGE_SCENE", "actionTarget": "GARDEN_MAIN",
-      "next": "d4_028" },
-    "d4_028": { "speaker": "Datt", "scene": "GARDEN_MAIN",
+      "next": "d4_026"
+    },
+    "d4_026": {
+      "action": "SET_FLAG",
+      "actionTarget": "correct_account_found",
+      "next": "d4_027"
+    },
+    "d4_027": {
+      "action": "CHANGE_SCENE",
+      "actionTarget": "GARDEN_MAIN",
+      "next": "d4_028"
+    },
+    "d4_028": {
+      "speaker": "Datt",
+      "scene": "GARDEN_MAIN",
       "text": "Eh sorry Pin, aku kemarin salah follow akun orang",
-      "next": "d4_029" },
-    "d4_029": { "speaker": "Pina",
+      "next": "d4_029"
+    },
+    "d4_029": {
+      "speaker": "Pina",
       "text": "HAHAHA anjay parah.",
-      "next": "d4_030" },
-    "d4_030": { "action": "SET_FLAG", "actionTarget": "chapter1_day4_complete",
-      "next": "d4_031" },
-    "d4_031": { "speaker": "Narrator",
+      "next": "d4_030"
+    },
+    "d4_030": {
+      "action": "SET_FLAG",
+      "actionTarget": "chapter1_day4_complete",
+      "next": "d4_031"
+    },
+    "d4_031": {
+      "speaker": "Narrator",
       "text": "Mereka berdua pun bermutualan di Instagram.",
-      "next": "d4_032" },
-    "d4_032": { "speaker": "Narrator",
-      "text": "Bersambung.",
-      "next": "d4_033" },
-    "d4_033": { "action": "END_CHAPTER" }
+      "next": "d4_032"
+    },
+    "d4_032": {
+      "action": "END_CHAPTER"
+    },
+    "d1_wait_approach": {
+      "action": "WAIT_APPROACH",
+      "next": "d1_003"
+    },
+    "d2_wait_approach": {
+      "action": "WAIT_APPROACH",
+      "next": "d2_002"
+    },
+    "d3_wait_approach": {
+      "action": "WAIT_APPROACH",
+      "next": "d3_002"
+    }
   }
 }

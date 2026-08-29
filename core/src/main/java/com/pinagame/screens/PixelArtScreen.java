@@ -7,6 +7,9 @@ import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.pinagame.core.DialogManager;
 
 /**
@@ -15,17 +18,26 @@ import com.pinagame.core.DialogManager;
  * diperbesar TANPA smoothing (Nearest filter)" -- teknik umum buat dapet efek
  * blocky/pixelated tanpa perlu file gambar asli.
  *
- * Gampang diganti ke sprite/gambar sungguhan nanti: cukup ganti isi
- * buildRoomTexture() jadi load Texture dari assets, bukan gambar Pixmap manual --
- * struktur render() (skala & posisi ke layar) tidak perlu diubah sama sekali.
+ * Bubble teks Datt & Heri diposisikan berdasarkan koordinat KANVAS (bukan dunia
+ * kayak GardenScreen), karena karakter di sini posisinya tetap/duduk, tidak
+ * bergerak -- lihat positionBubble().
  */
 public class PixelArtScreen extends BaseGameScreen {
 
     private static final int CANVAS_W = 160;
     private static final int CANVAS_H = 90;
+    private static final float BUBBLE_Y_OFFSET = 6f; // sedikit di atas rambut, dalam unit kanvas
+
+    // Posisi kanvas kepala masing-masing karakter (dipakai gambar DAN posisi bubble).
+    private static final float DATT_HEAD_X = 65f, DATT_HEAD_TOP_Y = 44f;
+    private static final float HERI_HEAD_X = 107f, HERI_HEAD_TOP_Y = 44f;
 
     private Texture roomTexture;
     private SpriteBatch batch;
+
+    private Label bubbleLabel;
+    private Table bubbleBox;
+    private String bubbleSpeaker;
 
     public PixelArtScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -37,8 +49,6 @@ public class PixelArtScreen extends BaseGameScreen {
         buildDialogueUI();
         batch = new SpriteBatch();
         roomTexture = buildRoomTexture();
-        // Sama seperti sebelumnya: screen ini selalu dimasuki lewat CHANGE_SCENE
-        // di tengah dialog yang sudah berjalan, jadi tidak perlu startFrom() manual.
     }
 
     @Override
@@ -48,8 +58,6 @@ public class PixelArtScreen extends BaseGameScreen {
         float screenW = Gdx.graphics.getWidth();
         float screenH = Gdx.graphics.getHeight();
 
-        // Skala kanvas kecil supaya pas memenuhi lebar layar, tetap jaga rasio
-        // aslinya (160:90), rata atas -- sisa ruang bawah buat kotak dialog.
         float drawW = screenW;
         float drawH = screenW * ((float) CANVAS_H / CANVAS_W);
         if (drawH > screenH) {
@@ -58,13 +66,16 @@ public class PixelArtScreen extends BaseGameScreen {
         }
         float drawX = (screenW - drawW) / 2f;
         float drawY = screenH - drawH;
+        float scale = drawW / CANVAS_W;
 
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, screenW, screenH));
         batch.begin();
         batch.draw(roomTexture, drawX, drawY, drawW, drawH);
         batch.end();
 
-        super.render(delta); // gambar overlay kotak dialog di atas scene
+        updateBubblePosition(drawX, drawY, scale);
+
+        super.render(delta);
     }
 
     @Override
@@ -75,20 +86,66 @@ public class PixelArtScreen extends BaseGameScreen {
     }
 
     // ---------------------------------------------------------------------
+    // Bubble teks Datt & Heri
+    // ---------------------------------------------------------------------
+
+    @Override
+    protected void showBubble(String speaker, String text) {
+        ensureBubbleBuilt();
+        float maxWidth = Math.min(230f, Gdx.graphics.getWidth() * 0.5f);
+        bubbleLabel.setText(text);
+        bubbleBox.clear();
+        bubbleBox.add(bubbleLabel).width(maxWidth).pad(8);
+        bubbleBox.pack();
+        bubbleBox.setVisible(true);
+        bubbleSpeaker = speaker;
+    }
+
+    @Override
+    protected void hideBubble() {
+        if (bubbleBox != null) bubbleBox.setVisible(false);
+        bubbleSpeaker = null;
+    }
+
+    private void ensureBubbleBuilt() {
+        if (bubbleBox != null) return;
+        bubbleLabel = new Label("", skin);
+        bubbleLabel.setWrap(true);
+        bubbleLabel.setColor(Color.BLACK);
+        bubbleLabel.setFontScale(0.9f);
+        bubbleLabel.setAlignment(com.badlogic.gdx.utils.Align.center);
+        bubbleBox = new Table();
+        bubbleBox.setBackground(skin.newDrawable("white", new Color(1f, 1f, 1f, 0.94f)));
+        bubbleBox.setTouchable(Touchable.disabled);
+        bubbleBox.setVisible(false);
+        uiStage.addActor(bubbleBox);
+    }
+
+    private void updateBubblePosition(float drawX, float drawY, float scale) {
+        if (bubbleBox == null || !bubbleBox.isVisible()) return;
+        boolean isHeri = "Heri".equals(bubbleSpeaker);
+        float headX = isHeri ? HERI_HEAD_X : DATT_HEAD_X;
+        float headTopY = isHeri ? HERI_HEAD_TOP_Y : DATT_HEAD_TOP_Y;
+
+        float bx = drawX + headX * scale;
+        // CANVAS_H - y karena kanvas pakai konvensi Pixmap (y=0 di atas), sedangkan
+        // posisi layar butuh y=0 di bawah -- lihat catatan di buildRoomTexture().
+        float by = drawY + (CANVAS_H - (headTopY - BUBBLE_Y_OFFSET)) * scale;
+        bubbleBox.setPosition(bx - bubbleBox.getWidth() / 2f, by);
+    }
+
+    // ---------------------------------------------------------------------
     // Gambar adegan kamar ke kanvas kecil
     // ---------------------------------------------------------------------
 
     private Texture buildRoomTexture() {
         Pixmap pm = new Pixmap(CANVAS_W, CANVAS_H, Pixmap.Format.RGBA8888);
 
-        // Dinding
         pm.setColor(new Color(0.55f, 0.47f, 0.4f, 1f));
         pm.fillRectangle(0, 0, CANVAS_W, 55);
-        // Lantai
         pm.setColor(new Color(0.36f, 0.25f, 0.2f, 1f));
         pm.fillRectangle(0, 55, CANVAS_W, CANVAS_H - 55);
 
-        // Jendela
         pm.setColor(new Color(0.55f, 0.75f, 0.92f, 1f));
         pm.fillRectangle(18, 8, 28, 22);
         pm.setColor(new Color(0.9f, 0.87f, 0.8f, 1f));
@@ -96,20 +153,17 @@ public class PixelArtScreen extends BaseGameScreen {
         pm.drawLine(32, 8, 32, 30);
         pm.drawLine(18, 19, 46, 19);
 
-        // Meja
         pm.setColor(new Color(0.32f, 0.21f, 0.13f, 1f));
         pm.fillRectangle(55, 58, 60, 6);
         pm.fillRectangle(58, 64, 4, 20);
         pm.fillRectangle(108, 64, 4, 20);
 
-        // Laptop (layar menyala biru muda)
         pm.setColor(new Color(0.18f, 0.18f, 0.2f, 1f));
         pm.fillRectangle(76, 54, 20, 4);
         pm.fillRectangle(78, 40, 16, 14);
         pm.setColor(new Color(0.45f, 0.75f, 0.95f, 1f));
         pm.fillRectangle(80, 42, 12, 10);
 
-        // Karakter Datt (kiri, desain detail) & Heri (kanan, tetap generik), duduk di depan meja
         drawDattCharacter(pm, 58);
         drawSimpleCharacter(pm, 100, new Color(0.32f, 0.62f, 0.52f, 1f));
 
@@ -121,37 +175,29 @@ public class PixelArtScreen extends BaseGameScreen {
 
     private void drawSimpleCharacter(Pixmap pm, int baseX, Color shirtColor) {
         pm.setColor(shirtColor);
-        pm.fillRectangle(baseX, 58, 14, 20); // badan
+        pm.fillRectangle(baseX, 58, 14, 20);
         pm.setColor(new Color(0.87f, 0.7f, 0.56f, 1f));
-        pm.fillRectangle(baseX + 3, 48, 8, 10); // kepala
+        pm.fillRectangle(baseX + 3, 48, 8, 10);
         pm.setColor(new Color(0.2f, 0.15f, 0.1f, 1f));
-        pm.fillRectangle(baseX + 2, 46, 10, 4); // rambut
+        pm.fillRectangle(baseX + 2, 46, 10, 4);
     }
 
-    /**
-     * Datt versi detail: rambut coklat disisir ke satu sisi, jaket hitam terbuka
-     * dengan kaos biru keliatan di tengah -- sama seperti versi di GardenScreen,
-     * supaya tampilannya konsisten di kedua scene.
-     */
     private void drawDattCharacter(Pixmap pm, int baseX) {
         Color skin = new Color(0.87f, 0.72f, 0.58f, 1f);
         Color hair = new Color(0.35f, 0.22f, 0.13f, 1f);
         Color jacket = new Color(0.12f, 0.12f, 0.14f, 1f);
         Color shirt = new Color(0.15f, 0.5f, 0.85f, 1f);
 
-        // Badan: jaket hitam terbuka, kaos biru keliatan di tengah
         pm.setColor(jacket);
         pm.fillRectangle(baseX, 58, 14, 20);
         pm.setColor(shirt);
         pm.fillRectangle(baseX + 5, 58, 4, 20);
 
-        // Kepala
         pm.setColor(skin);
         pm.fillRectangle(baseX + 3, 48, 8, 10);
 
-        // Rambut coklat, disisir ke satu sisi
         pm.setColor(hair);
         pm.fillRectangle(baseX + 2, 46, 10, 4);
-        pm.fillRectangle(baseX + 8, 49, 3, 3); // helai nyamping
+        pm.fillRectangle(baseX + 8, 49, 3, 3);
     }
 }

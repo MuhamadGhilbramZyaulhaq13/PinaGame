@@ -120,12 +120,18 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
         Gdx.input.setInputProcessor(uiStage);
     }
 
-    /** Ganti implementasi ini untuk load skin.json asli dari assets/ui/. */
+    /** Load skin dari assets/ui/uiskin.json (diunduh dari repo resmi libGDX). */
     protected Skin loadSkin() {
         return new Skin(Gdx.files.internal("ui/uiskin.json"));
     }
 
-
+    /**
+     * Overlay hitam penuh layar yang otomatis fade-out begitu screen ini tampil --
+     * efek "napas" transisi. Panggil ini di show() SETELAH buildDialogueUI(), supaya
+     * ditambahkan paling atas (lapisan terdepan) dan menutupi scene sesaat sebelum
+     * memudar. Tidak menghalangi klik sama sekali (Touchable.disabled) -- durasi
+     * transisi cuma visual, tidak pernah bikin pemain "kehilangan" klik.
+     */
     protected void addFadeInOverlay(float durationSeconds) {
         Image overlay = new Image(skin.getDrawable("white"));
         overlay.setColor(Color.BLACK);
@@ -149,9 +155,35 @@ public abstract class BaseGameScreen extends ScreenAdapter implements DialogMana
 
     @Override
     public void onLine(String speaker, String text) {
-        speakerLabel.setText(speaker == null ? "" : speaker);
-        lineLabel.setText(text);
         choiceContainer.clear();
+        if (speaker == null || "Narrator".equals(speaker)) {
+            // Narasi tetap tampil di kotak bawah seperti biasa.
+            hideBubble();
+            speakerLabel.setText("");
+            lineLabel.setText(text);
+        } else {
+            // Dialog karakter -> bubble di atas kepalanya (lihat subclass), kotak
+            // bawah dikosongkan supaya gak dobel nampilin teks yang sama.
+            speakerLabel.setText("");
+            lineLabel.setText("");
+            showBubble(speaker, text);
+        }
+    }
+
+    /**
+     * Tampilkan baris dialog milik seorang KARAKTER (bukan narator) sebagai bubble
+     * di atas kepalanya. Default di sini cuma fallback (tampil di kotak bawah biasa
+     * dengan nama speaker-nya) -- override di subclass yang tahu posisi karakter di
+     * layar (lihat GardenScreen, PixelArtScreen) untuk bubble yang beneran mengambang
+     * di atas kepala.
+     */
+    protected void showBubble(String speaker, String text) {
+        speakerLabel.setText(speaker);
+        lineLabel.setText(text);
+    }
+
+    /** Sembunyikan bubble yang lagi tampil (kalau ada). No-op di sini; override di subclass. */
+    protected void hideBubble() {
     }
 
     @Override

@@ -10,31 +10,35 @@ import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Touchable;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.pinagame.core.DialogManager;
 
 /**
  * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar block/robot
  * Pina berjalan di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
  *
- * Ada 3 "mode" tergantung bagaimana screen ini dimasuki:
- * - FIRST_ENCOUNTER: pertemuan paling pertama (Hari 1).
- * - DAY_BREAK_ENCOUNTER: "jeda hari" (mis. mulai Hari 2, Hari 3).
- * - AUTO_CONTINUE: kunjungan di tengah cerita yang SUDAH aktif (mis. Hari 4).
+ * Ada 2 "mode" tergantung bagaimana screen ini dimasuki:
+ * - WALK_TO_DATT: dialog (narasi pembuka) baru saja mulai/lanjut otomatis, lalu
+ *   PAUSE di node WAIT_APPROACH menunggu pemain jalanin Pina mendekati Datt.
+ *   Dipakai di Hari 1 (pertemuan pertama) DAN tiap "jeda hari" (Hari 2, Hari 3).
+ * - AUTO_CONTINUE: kunjungan di tengah cerita yang sudah aktif (mis. Hari 4 balik
+ *   dari Instagram) -- Datt yang jalan menghampiri Pina, tidak perlu trigger.
  *
- * Sprite Datt (buildDattTexture) dibuat lebih detail berdasarkan deskripsi avatar
- * aslinya: rambut coklat disisir ke satu sisi, jaket hitam terbuka dengan kaos biru
- * di tengah, celana gelap -- semuanya digambar ulang dari nol lewat Pixmap (bukan
- * hasil trace/reproduksi langsung dari gambar apa pun), jadi ilustrasi orisinal.
+ * Begitu dialog ke-trigger (dialogTriggered=true), gerakan Pina DIKUNCI -- supaya
+ * pemain fokus tap layar buat baca obrolan, bukan keliaran jalan-jalan.
  */
 public class GardenScreen extends BaseGameScreen {
 
-    private enum EntryMode { FIRST_ENCOUNTER, DAY_BREAK_ENCOUNTER, AUTO_CONTINUE }
+    private enum EntryMode { WALK_TO_DATT, AUTO_CONTINUE }
 
     private static final float WORLD_W = 400f;
     private static final float WORLD_H = 260f;
     private static final float SPEED = 90f;
     private static final float DATT_WALK_SPEED = 150f;
     private static final float FADE_DURATION = 0.7f;
+    private static final float BUBBLE_GAP = 8f; // jarak bersih antara puncak kepala dan bubble, dalam piksel layar
 
     private EntryMode entryMode;
 
@@ -50,6 +54,14 @@ public class GardenScreen extends BaseGameScreen {
     private Texture gardenTexture;
     private Texture pinaTexture;
     private Texture dattTexture;
+
+    // Posisi layar hasil transform dunia->layar, dihitung ulang tiap frame di render()
+    // dan dipakai bareng buat gambar karakter DAN posisi bubble.
+    private float drawX, drawY, scale;
+
+    private Label bubbleLabel;
+    private Table bubbleBox;
+    private String bubbleSpeaker;
 
     public GardenScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -67,15 +79,6 @@ public class GardenScreen extends BaseGameScreen {
         entryMode = resolveEntryMode();
 
         switch (entryMode) {
-            case DAY_BREAK_ENCOUNTER:
-                pinaX = 60f;
-                pinaY = 50f;
-                dattX = 270f;
-                dattY = 128f;
-                dattWalking = false;
-                dialogTriggered = false;
-                addFadeInOverlay(FADE_DURATION);
-                break;
             case AUTO_CONTINUE:
                 pinaX = 180f;
                 pinaY = 55f;
@@ -86,7 +89,7 @@ public class GardenScreen extends BaseGameScreen {
                 dattWalking = true;
                 dialogTriggered = true;
                 break;
-            case FIRST_ENCOUNTER:
+            case WALK_TO_DATT:
             default:
                 pinaX = 60f;
                 pinaY = 50f;
@@ -101,10 +104,10 @@ public class GardenScreen extends BaseGameScreen {
 
     private EntryMode resolveEntryMode() {
         if (!dialogManager.hasStarted()) {
-            return EntryMode.FIRST_ENCOUNTER;
+            return EntryMode.WALK_TO_DATT;
         }
         if (sceneId != null && sceneId.startsWith("GARDEN_DAY")) {
-            return EntryMode.DAY_BREAK_ENCOUNTER;
+            return EntryMode.WALK_TO_DATT;
         }
         return EntryMode.AUTO_CONTINUE;
     }
@@ -113,8 +116,11 @@ public class GardenScreen extends BaseGameScreen {
     public void render(float delta) {
         clearScreen();
 
-        handleInput(delta);
+        // Gerakan (+ cek trigger) HANYA aktif sebelum dialog ke-trigger. Begitu
+        // dialogTriggered true, Pina "diam di tempat" -- fokus pemain pindah ke tap
+        // layar buat lanjutin obrolan, bukan gerak-gerakin karakter lagi.
         if (!dialogTriggered) {
+            handleInput(delta);
             checkNpcTrigger();
         }
         updateDattWalk(delta);
@@ -128,9 +134,9 @@ public class GardenScreen extends BaseGameScreen {
             drawH = screenH;
             drawW = screenH * (WORLD_W / WORLD_H);
         }
-        float drawX = (screenW - drawW) / 2f;
-        float drawY = screenH - drawH;
-        float scale = drawW / WORLD_W;
+        drawX = (screenW - drawW) / 2f;
+        drawY = screenH - drawH;
+        scale = drawW / WORLD_W;
 
         batch.setProjectionMatrix(batch.getProjectionMatrix().setToOrtho2D(0, 0, screenW, screenH));
         batch.begin();
@@ -138,6 +144,8 @@ public class GardenScreen extends BaseGameScreen {
         drawCharacterSprite(dattTexture, drawX, drawY, scale, dattX, dattY);
         drawCharacterSprite(pinaTexture, drawX, drawY, scale, pinaX, pinaY);
         batch.end();
+
+        updateBubblePosition();
 
         super.render(delta);
     }
@@ -192,11 +200,68 @@ public class GardenScreen extends BaseGameScreen {
             return;
         }
         dialogTriggered = true;
-        if (entryMode == EntryMode.DAY_BREAK_ENCOUNTER) {
-            dialogManager.continueFromPause();
-        } else {
-            dialogManager.startFrom(null);
-        }
+        // Dialog sudah otomatis jalan sampai node WAIT_APPROACH (narasi pembuka
+        // sudah tampil) -- ini lanjut dari titik jeda situ ke obrolan karakter.
+        dialogManager.continueFromPause();
+    }
+
+    // ---------------------------------------------------------------------
+    // Bubble teks di atas kepala karakter
+    // ---------------------------------------------------------------------
+
+    @Override
+    protected void showBubble(String speaker, String text) {
+        ensureBubbleBuilt();
+        // Lebar menyesuaikan layar (maks 230px atau separuh lebar layar, mana yang
+        // lebih kecil) -- supaya teks melebar ke samping, bukan numpuk jadi banyak
+        // baris ke bawah yang bisa nutupin karakternya.
+        float maxWidth = Math.min(230f, Gdx.graphics.getWidth() * 0.5f);
+        bubbleLabel.setText(text);
+        bubbleBox.clear();
+        bubbleBox.add(bubbleLabel).width(maxWidth).pad(8);
+        bubbleBox.pack();
+        bubbleBox.setVisible(true);
+        bubbleSpeaker = speaker;
+    }
+
+    @Override
+    protected void hideBubble() {
+        if (bubbleBox != null) bubbleBox.setVisible(false);
+        bubbleSpeaker = null;
+    }
+
+    private void ensureBubbleBuilt() {
+        if (bubbleBox != null) return;
+        bubbleLabel = new Label("", skin);
+        bubbleLabel.setWrap(true);
+        bubbleLabel.setColor(Color.BLACK);
+        bubbleLabel.setFontScale(0.9f);
+        bubbleLabel.setAlignment(com.badlogic.gdx.utils.Align.center);
+        bubbleBox = new Table();
+        bubbleBox.setBackground(skin.newDrawable("white", new Color(1f, 1f, 1f, 0.94f)));
+        bubbleBox.setTouchable(Touchable.disabled); // jangan sampai nge-block klik "lanjut"
+        bubbleBox.setVisible(false);
+        uiStage.addActor(bubbleBox);
+    }
+
+    /**
+     * Dipanggil tiap frame di render() supaya bubble ikut posisi karakter yang lagi
+     * jalan. Posisi Y dihitung dari TINGGI ASLI sprite yang lagi ngomong (bukan
+     * angka tetap), supaya bubble selalu bersih di atas kepala berapa pun ukuran
+     * layarnya -- sebelumnya pakai offset tetap yang bisa kepotong/nutupin
+     * karakter di layar kecil.
+     */
+    private void updateBubblePosition() {
+        if (bubbleBox == null || !bubbleBox.isVisible()) return;
+        boolean isDatt = "Datt".equals(bubbleSpeaker);
+        float worldX = isDatt ? dattX : pinaX;
+        float worldY = isDatt ? dattY : pinaY;
+        Texture speakerTex = isDatt ? dattTexture : pinaTexture;
+
+        float charTopScreenY = drawY + worldY * scale + speakerTex.getHeight() * scale;
+        float bx = drawX + worldX * scale;
+        float by = charTopScreenY + BUBBLE_GAP;
+        bubbleBox.setPosition(bx - bubbleBox.getWidth() / 2f, by);
     }
 
     // ---------------------------------------------------------------------
@@ -244,11 +309,6 @@ public class GardenScreen extends BaseGameScreen {
         return tex;
     }
 
-    /**
-     * Sprite generik (dipakai untuk Pina). isRobot=true -> kepala abu-abu + "visor"
-     * biru. PENTING: kepala di ATAS (pixmap y kecil), badan di BAWAH (y besar) --
-     * versi sebelumnya kebalik, sudah diperbaiki di sini.
-     */
     private Texture buildCharacterTexture(Color shirtColor, boolean isRobot) {
         int w = 12, h = 18;
         Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);
@@ -257,18 +317,18 @@ public class GardenScreen extends BaseGameScreen {
             ? new Color(0.8f, 0.82f, 0.86f, 1f)
             : new Color(0.87f, 0.7f, 0.56f, 1f);
         pm.setColor(headColor);
-        pm.fillRectangle(1, 0, w - 2, 6); // kepala (atas)
+        pm.fillRectangle(1, 0, w - 2, 6);
 
         if (isRobot) {
             pm.setColor(new Color(0.15f, 0.55f, 0.85f, 1f));
-            pm.fillRectangle(2, 2, w - 4, 2); // visor
+            pm.fillRectangle(2, 2, w - 4, 2);
         } else {
             pm.setColor(new Color(0.2f, 0.15f, 0.1f, 1f));
-            pm.fillRectangle(1, 0, w - 2, 2); // rambut
+            pm.fillRectangle(1, 0, w - 2, 2);
         }
 
         pm.setColor(shirtColor);
-        pm.fillRectangle(0, 6, w, 12); // badan (bawah)
+        pm.fillRectangle(0, 6, w, 12);
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
@@ -276,12 +336,6 @@ public class GardenScreen extends BaseGameScreen {
         return tex;
     }
 
-    /**
-     * Sprite Datt yang lebih detail: rambut coklat disisir ke satu sisi, jaket
-     * hitam terbuka dengan kaos biru keliatan di tengah, celana gelap -- diambil
-     * dari deskripsi ciri-ciri avatar aslinya, digambar ulang sebagai ilustrasi
-     * orisinal (bukan trace/reproduksi langsung).
-     */
     private Texture buildDattTexture() {
         int w = 16, h = 24;
         Pixmap pm = new Pixmap(w, h, Pixmap.Format.RGBA8888);
@@ -292,22 +346,18 @@ public class GardenScreen extends BaseGameScreen {
         Color shirt = new Color(0.15f, 0.5f, 0.85f, 1f);
         Color pants = new Color(0.32f, 0.36f, 0.24f, 1f);
 
-        // Wajah
         pm.setColor(skin);
         pm.fillRectangle(2, 5, 12, 6);
 
-        // Rambut coklat, disisir ke satu sisi (helai tambahan nutupin sedikit wajah)
         pm.setColor(hair);
         pm.fillRectangle(1, 0, 14, 5);
         pm.fillRectangle(10, 4, 4, 4);
 
-        // Badan: jaket hitam terbuka, kaos biru keliatan di tengah
         pm.setColor(jacket);
         pm.fillRectangle(0, 11, 16, 9);
         pm.setColor(shirt);
         pm.fillRectangle(6, 11, 4, 9);
 
-        // Celana
         pm.setColor(pants);
         pm.fillRectangle(1, 20, 14, 4);
 
