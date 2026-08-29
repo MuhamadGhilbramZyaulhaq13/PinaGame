@@ -315,36 +315,60 @@ public class GardenScreen extends BaseGameScreen {
 
         Color skin = new Color(0.92f, 0.78f, 0.68f, 1f);
         Color hair = new Color(0.55f, 0.45f, 0.38f, 1f);
+        Color blackeye = new Color(0.12f, 0.12f, 0.14f, 1f);
+        Color whiteeye = new Color(0.92f, 0.92f, 0.92f, 1f);
+        Color lips = new Color(0.94f, 0.59f, 0.67f, 1f);
         Color blouse = new Color(0.88f, 0.88f, 0.9f, 1f);
         Color blouseAccent = new Color(0.62f, 0.62f, 0.68f, 1f);
+        Color blouseDark = new Color(0.25f, 0.25f, 0.35f, 1.0f);
         Color skirt = new Color(0.15f, 0.2f, 0.55f, 1f);
         Color shoes = new Color(0.92f, 0.92f, 0.92f, 1f);
 
         // Sepatu putih
         pm.setColor(shoes);
-        pm.fillRectangle(3, 22, 10, 2);
+        pm.fillRectangle(3, 19, 10, 6);
+        pm.setColor(skin);
+        pm.fillRectangle(3, 19, 10, 4);
 
         // Rok biru
         pm.setColor(skirt);
-        pm.fillRectangle(2, 17, 12, 5);
+        pm.fillRectangle(2, 17, 12, 3);
+        pm.fillRectangle(12, 17, 2, 5);
+        pm.fillRectangle(2, 19, 9, 2);
+        pm.fillRectangle(2, 19, 6, 3);
+        pm.fillRectangle(2, 19, 3, 4);
 
         // Atasan putih/abu dengan sedikit aksen motif
         pm.setColor(blouse);
         pm.fillRectangle(2, 11, 12, 6);
+
         pm.setColor(blouseAccent);
-        pm.fillRectangle(6, 13, 4, 2);
+        pm.fillRectangle(4, 11, 2, 6);
+        pm.fillRectangle(9, 11, 2, 6);
+
+        pm.fillRectangle(2, 13, 12, 2   );
+        pm.setColor(blouseDark);
+        pm.fillRectangle(4, 13, 2, 2);
+        pm.fillRectangle(9, 13, 2, 2);
 
         // Wajah
         pm.setColor(skin);
-        pm.fillRectangle(4, 5, 8, 6);
+        pm.fillRectangle(4, 5, 8, 5);
+        pm.fillRectangle(5, 5, 6, 6);
+
 
         // Rambut atas
         pm.setColor(hair);
-        pm.fillRectangle(1, 0, 14, 5);
+        pm.fillRectangle(3, 2, 10, 3);
 
         // Rambut panjang di kedua sisi, menutupi bahu
-        pm.fillRectangle(0, 4, 4, 11);
-        pm.fillRectangle(12, 4, 4, 11);
+        pm.fillRectangle(2, 4, 1, 8);
+        pm.fillRectangle(2, 4, 2, 6);
+        pm.fillRectangle(2, 4, 3, 4);
+        pm.fillRectangle(2, 4, 4, 2);
+        pm.fillRectangle(11, 4, 4, 4);
+        pm.fillRectangle(12, 4, 2, 8);
+
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
