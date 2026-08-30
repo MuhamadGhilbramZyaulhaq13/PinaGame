@@ -14,11 +14,10 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.pinagame.core.DialogManager;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 /**
- * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar block/robot
- * Pina berjalan di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
+ * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar Pina berjalan
+ * di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
  *
  * Ada 2 "mode" tergantung bagaimana screen ini dimasuki:
  * - WALK_TO_DATT: dialog (narasi pembuka) baru saja mulai/lanjut otomatis, lalu
@@ -29,6 +28,10 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
  *
  * Begitu dialog ke-trigger (dialogTriggered=true), gerakan Pina DIKUNCI -- supaya
  * pemain fokus tap layar buat baca obrolan, bukan keliaran jalan-jalan.
+ *
+ * CATATAN: buildPinaTexture() versi ini hasil editan langsung oleh developer
+ * (bukan versi awal saya) -- proporsi rambut/rok/sepatu disesuaikan lebih detail
+ * berdasarkan referensi avatar aslinya.
  */
 public class GardenScreen extends BaseGameScreen {
 
@@ -56,15 +59,11 @@ public class GardenScreen extends BaseGameScreen {
     private Texture pinaTexture;
     private Texture dattTexture;
 
-    // Posisi layar hasil transform dunia->layar, dihitung ulang tiap frame di render()
-    // dan dipakai bareng buat gambar karakter DAN posisi bubble.
     private float drawX, drawY, scale;
 
     private Label bubbleLabel;
     private Table bubbleBox;
     private String bubbleSpeaker;
-    private Table dpad;
-    private TextButton leftBtn, rightBtn, upBtn, downBtn;
 
     public GardenScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -78,7 +77,6 @@ public class GardenScreen extends BaseGameScreen {
         gardenTexture = buildGardenTexture();
         pinaTexture = buildPinaTexture();
         dattTexture = buildDattTexture();
-        buildDpad();
 
         entryMode = resolveEntryMode();
 
@@ -120,15 +118,9 @@ public class GardenScreen extends BaseGameScreen {
     public void render(float delta) {
         clearScreen();
 
-        // Gerakan (+ cek trigger) HANYA aktif sebelum dialog ke-trigger. Begitu
-        // dialogTriggered true, Pina "diam di tempat" -- fokus pemain pindah ke tap
-        // layar buat lanjutin obrolan, bukan gerak-gerakin karakter lagi.
         if (!dialogTriggered) {
             handleInput(delta);
             checkNpcTrigger();
-        }
-        if (dpad != null) {
-            dpad.setVisible(!dialogTriggered); // D-pad ikut hilang pas gerakan terkunci
         }
         updateDattWalk(delta);
 
@@ -172,38 +164,14 @@ public class GardenScreen extends BaseGameScreen {
 
     private void handleInput(float delta) {
         float dx = 0, dy = 0;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || (leftBtn != null && leftBtn.isPressed())) dx -= 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || (rightBtn != null && rightBtn.isPressed())) dx += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP) || (upBtn != null && upBtn.isPressed())) dy += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || (downBtn != null && downBtn.isPressed())) dy -= 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) dx -= 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) dx += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP)) dy += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) dy -= 1;
         pinaX += dx * SPEED * delta;
         pinaY += dy * SPEED * delta;
         pinaX = MathUtils.clamp(pinaX, 10f, WORLD_W - 10f);
         pinaY = MathUtils.clamp(pinaY, 10f, WORLD_H - 10f);
-    }
-    private void buildDpad() {
-        leftBtn = new TextButton("<", skin);
-        rightBtn = new TextButton(">", skin);
-        upBtn = new TextButton("^", skin);
-        downBtn = new TextButton("v", skin);
-
-        Table cross = new Table();
-        cross.add().size(64f);
-        cross.add(upBtn).size(64f);
-        cross.add().size(64f).row();
-        cross.add(leftBtn).size(64f);
-        cross.add().size(64f);
-        cross.add(rightBtn).size(64f).row();
-        cross.add().size(64f);
-        cross.add(downBtn).size(64f);
-        cross.add().size(64f);
-
-        dpad = new Table();
-        dpad.setFillParent(true);
-        dpad.bottom().left().pad(24f);
-        dpad.add(cross);
-
-        uiStage.addActor(dpad);
     }
 
     private void updateDattWalk(float delta) {
@@ -230,9 +198,14 @@ public class GardenScreen extends BaseGameScreen {
         if (!datNpcTrigger.contains(pinaX, pinaY)) {
             return;
         }
+        if (!dialogManager.isPausedAtWait()) {
+            // Pina udah deket Datt, tapi dialog BELUM beneran nyampe titik jeda
+            // (mis. pemain masih di tengah baca narasi pembuka sambil jalan) --
+            // JANGAN lakukan apa-apa dulu. Method ini dicek ulang tiap frame
+            // sampai dialog beneran paused.
+            return;
+        }
         dialogTriggered = true;
-        // Dialog sudah otomatis jalan sampai node WAIT_APPROACH (narasi pembuka
-        // sudah tampil) -- ini lanjut dari titik jeda situ ke obrolan karakter.
         dialogManager.continueFromPause();
     }
 
@@ -243,9 +216,6 @@ public class GardenScreen extends BaseGameScreen {
     @Override
     protected void showBubble(String speaker, String text) {
         ensureBubbleBuilt();
-        // Lebar menyesuaikan layar (maks 230px atau separuh lebar layar, mana yang
-        // lebih kecil) -- supaya teks melebar ke samping, bukan numpuk jadi banyak
-        // baris ke bawah yang bisa nutupin karakternya.
         float maxWidth = Math.min(230f, Gdx.graphics.getWidth() * 0.5f);
         bubbleLabel.setText(text);
         bubbleBox.clear();
@@ -270,18 +240,11 @@ public class GardenScreen extends BaseGameScreen {
         bubbleLabel.setAlignment(com.badlogic.gdx.utils.Align.center);
         bubbleBox = new Table();
         bubbleBox.setBackground(skin.newDrawable("white", new Color(1f, 1f, 1f, 0.94f)));
-        bubbleBox.setTouchable(Touchable.disabled); // jangan sampai nge-block klik "lanjut"
+        bubbleBox.setTouchable(Touchable.disabled);
         bubbleBox.setVisible(false);
         uiStage.addActor(bubbleBox);
     }
 
-    /**
-     * Dipanggil tiap frame di render() supaya bubble ikut posisi karakter yang lagi
-     * jalan. Posisi Y dihitung dari TINGGI ASLI sprite yang lagi ngomong (bukan
-     * angka tetap), supaya bubble selalu bersih di atas kepala berapa pun ukuran
-     * layarnya -- sebelumnya pakai offset tetap yang bisa kepotong/nutupin
-     * karakter di layar kecil.
-     */
     private void updateBubblePosition() {
         if (bubbleBox == null || !bubbleBox.isVisible()) return;
         boolean isDatt = "Datt".equals(bubbleSpeaker);
@@ -377,7 +340,7 @@ public class GardenScreen extends BaseGameScreen {
         pm.fillRectangle(4, 11, 2, 6);
         pm.fillRectangle(9, 11, 2, 6);
 
-        pm.fillRectangle(2, 13, 12, 2   );
+        pm.fillRectangle(2, 13, 12, 2);
         pm.setColor(blouseDark);
         pm.fillRectangle(4, 13, 2, 2);
         pm.fillRectangle(9, 13, 2, 2);
@@ -386,7 +349,6 @@ public class GardenScreen extends BaseGameScreen {
         pm.setColor(skin);
         pm.fillRectangle(4, 5, 8, 5);
         pm.fillRectangle(5, 5, 6, 6);
-
 
         // Rambut atas
         pm.setColor(hair);
@@ -398,8 +360,7 @@ public class GardenScreen extends BaseGameScreen {
         pm.fillRectangle(2, 4, 3, 4);
         pm.fillRectangle(2, 4, 4, 2);
         pm.fillRectangle(11, 4, 4, 4);
-        pm.fillRectangle(12, 4, 2, 8);
-
+        pm.fillRectangle(12, 4, 2, 7);
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);

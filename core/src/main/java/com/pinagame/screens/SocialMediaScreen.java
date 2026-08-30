@@ -388,8 +388,7 @@ public class SocialMediaScreen extends BaseGameScreen {
                 button.setColor(FOLLOW_CLICKED_GRAY);
                 button.setDisabled(true);
                 button.setTouchable(Touchable.disabled);
-                dialogManager.continueFromPause();
-            }
+                dialogManager.forceAdvance();            }
         });
 
         wrongFollowButton = button;
@@ -399,6 +398,7 @@ public class SocialMediaScreen extends BaseGameScreen {
         super.onLine(speaker, text);
         if (currentSubScreen == UISubScreen.PROFILE_WRONG && "Heri".equals(speaker)) {
             activateWrongFollowButton();
+            dialogManager.blockAdvanceUntilExternalTrigger();
         }
     }
 

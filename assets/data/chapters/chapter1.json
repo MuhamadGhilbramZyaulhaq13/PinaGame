@@ -265,8 +265,7 @@
     },
     "d4_012": { "speaker": "Heri",
       "text": "(Heri yang sedang kelelahan menjawab dengan asal) Gapapa bray",
-      "next": "d4_wait_follow" },
-    "d4_wait_follow": { "action": "WAIT_FOLLOW", "next": "d4_013" },
+      "next": "d4_013" },
     "d4_013": { "speaker": "Datt",
       "choices": [
         {

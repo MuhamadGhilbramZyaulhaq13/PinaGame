@@ -69,6 +69,7 @@ public class DialogManager {
         this.graph = json.fromJson(DialogGraph.class, raw);
         this.ended = false;
         this.lineShownAtMillis = 0L;
+        this.externalGateActive = false;
 
         for (Map.Entry<String, DialogNode> entry : graph.nodes.entrySet()) {
             if (entry.getValue().id == null) {
@@ -153,6 +154,11 @@ public class DialogManager {
 
     /** Dipanggil UI ketika pemain tap layar untuk lanjut ke baris berikutnya. */
     public void advance() {
+        if (externalGateActive) return; // lihat blockAdvanceUntilExternalTrigger()
+        advanceInternal();
+    }
+
+    private void advanceInternal() {
         if (ended) return;
         if (currentNode == null) return;
 
@@ -162,9 +168,9 @@ public class DialogManager {
             return;
         }
 
-        // Node ber-action WAIT_xxx (mis. WAIT_APPROACH, WAIT_FOLLOW) MUTLAK cuma
-        // bisa dilewati lewat continueFromPause() yang dipicu screen terkait --
-        // tap/klik biasa TIDAK PERNAH boleh melewatinya, walau currentNode.next ada.
+        // Node ber-action WAIT_xxx (mis. WAIT_APPROACH) MUTLAK cuma bisa dilewati
+        // lewat continueFromPause() yang dipicu screen terkait -- tap/klik biasa
+        // TIDAK PERNAH boleh melewatinya, walau currentNode.next ada.
         if (isWaitAction(currentNode.action)) {
             return;
         }
@@ -200,8 +206,23 @@ public class DialogManager {
     }
 
     /**
+     * true kalau dialog LAGI BENERAN dijeda di sebuah node WAIT_xxx saat ini.
+     * Dipakai screen seperti GardenScreen SEBELUM memutuskan buat manggil
+     * continueFromPause() -- tanpa pengecekan ini, kalau pemain kebetulan udah
+     * dekat NPC SEBELUM dialog beneran nyampe titik jeda (mis. masih baca narasi
+     * pembuka), continueFromPause() bisa kepanggil PREMATUR dan cuma majuin 1
+     * langkah biasa -- lalu status "sudah trigger" keburu dipakai duluan,
+     * sehingga waktu dialog akhirnya BENERAN nyampe titik jeda, tidak ada lagi
+     * yang manggil continueFromPause() dan macet total.
+     */
+    public boolean isPausedAtWait() {
+        return currentNode != null && isWaitAction(currentNode.action);
+    }
+
+    /**
      * Lanjut dari node yang lagi "dijeda" (mis. abis node WAIT_APPROACH) ke node
-     * berikutnya. Dipanggil GardenScreen ketika pemain jalan mendekati NPC.
+     * berikutnya. Dipanggil GardenScreen ketika pemain jalan mendekati NPC --
+     * SEBAIKNYA dicek dulu isPausedAtWait() sebelum manggil ini.
      */
     public void continueFromPause() {
         if (ended) return;
@@ -210,12 +231,36 @@ public class DialogManager {
         }
     }
 
+    // ---------------------------------------------------------------------
+    // "External gate": cara BEDA dari WAIT_xxx buat nge-block tap biasa tanpa
+    // butuh node pause terpisah di JSON. Cocok buat kasus kayak tombol Follow:
+    // baris dialog (mis. Heri "Gapapa bray") tetap node teks BIASA (auto ke
+    // "next" seperti biasa), tapi begitu baris itu tampil, screen yang
+    // bersangkutan MANGGIL blockAdvanceUntilExternalTrigger() supaya tap/klik
+    // biasa diabaikan, dan HANYA forceAdvance() (dipanggil dari listener tombol
+    // spesifik) yang bisa melanjutkan -- persis 1 langkah, tanpa risiko "loncat
+    // 2 kali" seperti kalau dipaksa pakai node WAIT_xxx terpisah.
+    // ---------------------------------------------------------------------
+
+    private boolean externalGateActive = false;
+
+    public void blockAdvanceUntilExternalTrigger() {
+        externalGateActive = true;
+    }
+
+    /** Dipanggil dari listener tombol spesifik (BUKAN tap biasa) buat melewati external gate. */
+    public void forceAdvance() {
+        externalGateActive = false;
+        advanceInternal();
+    }
+
     /** Reset total status dialog. Dipakai GameMain saat pemain pilih "Mulai Baru". */
     public void reset() {
         this.currentNode = null;
         this.ended = false;
         this.lineShownAtMillis = 0L;
         this.graph = null;
+        this.externalGateActive = false;
     }
 
     private void notifyLine(String speaker, String text) {
