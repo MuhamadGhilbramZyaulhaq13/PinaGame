@@ -117,14 +117,14 @@ public class DialogManager {
         if (node.action != null
             && !"CHANGE_SCENE".equals(node.action)
             && !"SET_FLAG".equals(node.action)
-            && !"WAIT_APPROACH".equals(node.action)) {
+            && !isWaitAction(node.action)) {
             // Bukan salah satu action yang dikenali. Kasus paling umum: penulis JSON
             // gak sengaja nulis teks narasi di field "action", padahal seharusnya di
             // field "text". Kasih warning jelas di console daripada node ini diam-diam
             // tidak melakukan apa pun.
             Gdx.app.error("DialogManager", "Node '" + node.id + "' punya action tidak "
                 + "dikenal: \"" + node.action + "\". action cuma boleh CHANGE_SCENE / "
-                + "SET_FLAG / END_CHAPTER / WAIT_APPROACH. Kalau maksudnya teks narasi, "
+                + "SET_FLAG / END_CHAPTER / WAIT_xxx. Kalau maksudnya teks narasi, "
                 + "taruh di field \"text\" (dengan \"speaker\": \"Narrator\"), bukan di \"action\".");
         }
 
@@ -136,12 +136,19 @@ public class DialogManager {
             notifyChoices(node.choices);
         } else if (node.action != null && node.text == null) {
             // Node murni action (tanpa teks) -> langsung lanjut otomatis ke node
-            // berikutnya, KECUALI WAIT_APPROACH: itu sengaja PAUSE, menunggu screen
-            // (mis. GardenScreen) memanggil continueFromPause() sendiri.
-            if (!"WAIT_APPROACH".equals(node.action) && node.next != null) {
+            // berikutnya, KECUALI action ber-prefix WAIT_ (mis. WAIT_APPROACH,
+            // WAIT_FOLLOW): itu sengaja PAUSE, menunggu screen yang bersangkutan
+            // memanggil continueFromPause() sendiri lewat pemicu masing-masing
+            // (jalan mendekat, klik tombol tertentu, dll).
+            if (!isWaitAction(node.action) && node.next != null) {
                 goToNode(node.next);
             }
         }
+    }
+
+    /** true untuk action apa pun yang diawali "WAIT_" -- lihat catatan di goToNode(). */
+    private static boolean isWaitAction(String action) {
+        return action != null && action.startsWith("WAIT_");
     }
 
     /** Dipanggil UI ketika pemain tap layar untuk lanjut ke baris berikutnya. */
@@ -152,6 +159,13 @@ public class DialogManager {
         // Node yang lagi nampilin pilihan sengaja tidak punya "next" -- dia nunggu
         // pemain klik salah satu TOMBOL pilihan (lewat selectChoice()).
         if (currentNode.choices != null && !currentNode.choices.isEmpty()) {
+            return;
+        }
+
+        // Node ber-action WAIT_xxx (mis. WAIT_APPROACH, WAIT_FOLLOW) MUTLAK cuma
+        // bisa dilewati lewat continueFromPause() yang dipicu screen terkait --
+        // tap/klik biasa TIDAK PERNAH boleh melewatinya, walau currentNode.next ada.
+        if (isWaitAction(currentNode.action)) {
             return;
         }
 

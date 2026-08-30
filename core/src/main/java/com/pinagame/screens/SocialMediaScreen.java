@@ -14,7 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.pinagame.core.DialogManager;
-
+import com.badlogic.gdx.scenes.scene2d.Touchable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +24,7 @@ public class SocialMediaScreen extends BaseGameScreen {
     public enum UISubScreen { HOME_FEED, SEARCH, PROFILE_WRONG, PROFILE_CORRECT, CHAT, POST_SCREENSHOT }
 
     private UISubScreen currentSubScreen;
+    private TextButton wrongFollowButton;
     private final List<Texture> generatedTextures = new ArrayList<>();
 
     public SocialMediaScreen(Game game, DialogManager dialogManager, String sceneId) {
@@ -264,8 +265,12 @@ public class SocialMediaScreen extends BaseGameScreen {
         tapAdvances(followers);
         content.add(followers).padBottom(14).row();
 
-        TextButton followBtn = new TextButton(correct ? "Following" : "Follow", skin);
-        tapAdvances(followBtn);
+        TextButton followBtn = new TextButton(correct ? "Following" : "Fsollow", skin);
+        if (correct) {
+            tapAdvances(followBtn);
+        } else {
+            setupWrongProfileFollowButton(followBtn);
+        }
         content.add(followBtn).width(140).height(32).padBottom(16).row();
 
         if (correct) {
@@ -357,6 +362,50 @@ public class SocialMediaScreen extends BaseGameScreen {
             public void clicked(InputEvent event, float x, float y) {
                 dialogManager.advance();
             }
+        }
+        );
+    }
+    private static final Color FOLLOW_NEUTRAL = new Color(0.6f, 0.6f, 0.6f, 1f);
+    private static final Color FOLLOW_ACTIVE_BLUE = new Color(0.45f, 0.7f, 0.95f, 1f);
+    private static final Color FOLLOW_CLICKED_GRAY = new Color(0.92f, 0.92f, 0.92f, 1f);
+
+    /**
+     * Tombol Follow di profil yang SALAH: nonaktif & abu-abu netral dulu (gak bisa
+     * diklik), baru aktif + biru muda begitu dialog nyampe baris Heri ("Gapapa
+     * bray") -- lewat activateWrongFollowButton() yang dipanggil dari onLine().
+     * Setelah itu, tombol ini jadi SATU-SATUNYA cara lanjut (node WAIT_FOLLOW di
+     * JSON nge-block tap/klik biasa secara mutlak). Diklik -> warna abu-abu nyaris
+     * putih, dialog lanjut lewat continueFromPause().
+     */
+    private void setupWrongProfileFollowButton(TextButton button) {
+        button.setColor(FOLLOW_NEUTRAL);
+        button.setDisabled(true);
+        button.setTouchable(Touchable.disabled);
+
+        button.addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                button.setColor(FOLLOW_CLICKED_GRAY);
+                button.setDisabled(true);
+                button.setTouchable(Touchable.disabled);
+                dialogManager.continueFromPause();
+            }
         });
+
+        wrongFollowButton = button;
+    }
+    @Override
+    public void onLine(String speaker, String text) {
+        super.onLine(speaker, text);
+        if (currentSubScreen == UISubScreen.PROFILE_WRONG && "Heri".equals(speaker)) {
+            activateWrongFollowButton();
+        }
+    }
+
+    private void activateWrongFollowButton() {
+        if (wrongFollowButton == null) return;
+        wrongFollowButton.setColor(FOLLOW_ACTIVE_BLUE);
+        wrongFollowButton.setDisabled(false);
+        wrongFollowButton.setTouchable(Touchable.enabled);
     }
 }

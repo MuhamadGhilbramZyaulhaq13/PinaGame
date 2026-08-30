@@ -263,13 +263,11 @@
       "text": "(Dengan ragu datt bergumam) Gapapa kali ya may, buat temen chatan aja",
       "next": "d4_012"
     },
-    "d4_012": {
-      "speaker": "Heri",
+    "d4_012": { "speaker": "Heri",
       "text": "(Heri yang sedang kelelahan menjawab dengan asal) Gapapa bray",
-      "next": "d4_013"
-    },
-    "d4_013": {
-      "speaker": "Datt",
+      "next": "d4_wait_follow" },
+    "d4_wait_follow": { "action": "WAIT_FOLLOW", "next": "d4_013" },
+    "d4_013": { "speaker": "Datt",
       "choices": [
         {
           "text": "Jirlah",
