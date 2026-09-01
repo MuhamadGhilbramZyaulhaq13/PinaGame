@@ -167,7 +167,6 @@ public class GardenScreen extends BaseGameScreen {
     }
 
     // ---------------------------------------------------------------------
-    // Pergerakan, jalan-nyamperin Datt, & trigger (koordinat dunia)
     // ---------------------------------------------------------------------
 
     private void handleInput(float delta) {
