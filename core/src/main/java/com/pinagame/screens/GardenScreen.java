@@ -14,6 +14,7 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.pinagame.core.DialogManager;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 
 /**
  * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar Pina berjalan
@@ -64,6 +65,9 @@ public class GardenScreen extends BaseGameScreen {
     private Label bubbleLabel;
     private Table bubbleBox;
     private String bubbleSpeaker;
+    private Table dpad;
+    private TextButton leftBtn, rightBtn, upBtn, downBtn;
+
 
     public GardenScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -77,6 +81,7 @@ public class GardenScreen extends BaseGameScreen {
         gardenTexture = buildGardenTexture();
         pinaTexture = buildPinaTexture();
         dattTexture = buildDattTexture();
+        buildDpad();
 
         entryMode = resolveEntryMode();
 
@@ -122,6 +127,9 @@ public class GardenScreen extends BaseGameScreen {
             handleInput(delta);
             checkNpcTrigger();
         }
+        if (dpad != null) {
+            dpad.setVisible(!dialogTriggered);
+        }
         updateDattWalk(delta);
 
         float screenW = Gdx.graphics.getWidth();
@@ -164,14 +172,38 @@ public class GardenScreen extends BaseGameScreen {
 
     private void handleInput(float delta) {
         float dx = 0, dy = 0;
-        if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) dx -= 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) dx += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.UP)) dy += 1;
-        if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) dy -= 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.LEFT) || (leftBtn != null && leftBtn.isPressed())) dx -= 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.RIGHT) || (rightBtn != null && rightBtn.isPressed())) dx += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.UP) || (upBtn != null && upBtn.isPressed())) dy += 1;
+        if (Gdx.input.isKeyPressed(Input.Keys.DOWN) || (downBtn != null && downBtn.isPressed())) dy -= 1;
         pinaX += dx * SPEED * delta;
         pinaY += dy * SPEED * delta;
         pinaX = MathUtils.clamp(pinaX, 10f, WORLD_W - 10f);
         pinaY = MathUtils.clamp(pinaY, 10f, WORLD_H - 10f);
+    }
+    private void buildDpad() {
+        leftBtn = new TextButton("<", skin);
+        rightBtn = new TextButton(">", skin);
+        upBtn = new TextButton("^", skin);
+        downBtn = new TextButton("v", skin);
+
+        Table cross = new Table();
+        cross.add().size(64f);
+        cross.add(upBtn).size(64f);
+        cross.add().size(64f).row();
+        cross.add(leftBtn).size(64f);
+        cross.add().size(64f);
+        cross.add(rightBtn).size(64f).row();
+        cross.add().size(64f);
+        cross.add(downBtn).size(64f);
+        cross.add().size(64f);
+
+        dpad = new Table();
+        dpad.setFillParent(true);
+        dpad.bottom().left().pad(24f);
+        dpad.add(cross);
+
+        uiStage.addActor(dpad);
     }
 
     private void updateDattWalk(float delta) {
