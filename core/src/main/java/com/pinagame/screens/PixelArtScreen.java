@@ -14,23 +14,20 @@ import com.pinagame.core.DialogManager;
 
 /**
  * Scene dunia nyata bergaya pixel art retro (mis. Datt & Heri duduk di kamar
- * depan laptop). Digambar dengan cara "lukis di kanvas kecil (160x90px), lalu
- * diperbesar TANPA smoothing (Nearest filter)" -- teknik umum buat dapet efek
- * blocky/pixelated tanpa perlu file gambar asli.
+ * depan laptop). Digambar dengan cara "lukis di kanvas kecil, lalu diperbesar
+ * TANPA smoothing (Nearest filter)" -- teknik umum buat efek blocky/pixelated.
  *
- * Bubble teks Datt & Heri diposisikan berdasarkan koordinat KANVAS (bukan dunia
- * kayak GardenScreen), karena karakter di sini posisinya tetap/duduk, tidak
- * bergerak -- lihat positionBubble().
+ * CANVAS_W:CANVAS_H sengaja 200:90 (~2.22:1) -- mendekati rasio layar HP
+ * landscape modern -- supaya bilah hitam kiri-kanan minimal di HP sungguhan.
  */
 public class PixelArtScreen extends BaseGameScreen {
 
-    private static final int CANVAS_W = 160;
+    private static final int CANVAS_W = 200;
     private static final int CANVAS_H = 90;
-    private static final float BUBBLE_Y_OFFSET = 6f; // sedikit di atas rambut, dalam unit kanvas
+    private static final float BUBBLE_Y_OFFSET = 6f;
 
-    // Posisi kanvas kepala masing-masing karakter (dipakai gambar DAN posisi bubble).
-    private static final float DATT_HEAD_X = 65f, DATT_HEAD_TOP_Y = 44f;
-    private static final float HERI_HEAD_X = 107f, HERI_HEAD_TOP_Y = 44f;
+    private static final float DATT_HEAD_X = 79f, DATT_HEAD_TOP_Y = 44f;
+    private static final float HERI_HEAD_X = 139f, HERI_HEAD_TOP_Y = 44f;
 
     private Texture roomTexture;
     private SpriteBatch batch;
@@ -128,8 +125,6 @@ public class PixelArtScreen extends BaseGameScreen {
         float headTopY = isHeri ? HERI_HEAD_TOP_Y : DATT_HEAD_TOP_Y;
 
         float bx = drawX + headX * scale;
-        // CANVAS_H - y karena kanvas pakai konvensi Pixmap (y=0 di atas), sedangkan
-        // posisi layar butuh y=0 di bawah -- lihat catatan di buildRoomTexture().
         float by = drawY + (CANVAS_H - (headTopY - BUBBLE_Y_OFFSET)) * scale;
         bubbleBox.setPosition(bx - bubbleBox.getWidth() / 2f, by);
     }
@@ -147,25 +142,25 @@ public class PixelArtScreen extends BaseGameScreen {
         pm.fillRectangle(0, 55, CANVAS_W, CANVAS_H - 55);
 
         pm.setColor(new Color(0.55f, 0.75f, 0.92f, 1f));
-        pm.fillRectangle(18, 8, 28, 22);
+        pm.fillRectangle(22, 8, 35, 22);
         pm.setColor(new Color(0.9f, 0.87f, 0.8f, 1f));
-        pm.drawRectangle(18, 8, 28, 22);
-        pm.drawLine(32, 8, 32, 30);
-        pm.drawLine(18, 19, 46, 19);
+        pm.drawRectangle(22, 8, 35, 22);
+        pm.drawLine(39, 8, 39, 30);
+        pm.drawLine(22, 19, 57, 19);
 
         pm.setColor(new Color(0.32f, 0.21f, 0.13f, 1f));
-        pm.fillRectangle(55, 58, 60, 6);
-        pm.fillRectangle(58, 64, 4, 20);
-        pm.fillRectangle(108, 64, 4, 20);
+        pm.fillRectangle(69, 58, 75, 6);
+        pm.fillRectangle(72, 64, 4, 20);
+        pm.fillRectangle(136, 64, 4, 20);
 
         pm.setColor(new Color(0.18f, 0.18f, 0.2f, 1f));
-        pm.fillRectangle(76, 54, 20, 4);
-        pm.fillRectangle(78, 40, 16, 14);
+        pm.fillRectangle(94, 54, 25, 4);
+        pm.fillRectangle(96, 40, 20, 14);
         pm.setColor(new Color(0.45f, 0.75f, 0.95f, 1f));
-        pm.fillRectangle(80, 42, 12, 10);
+        pm.fillRectangle(99, 42, 15, 10);
 
-        drawDattCharacter(pm, 58);
-        drawSimpleCharacter(pm, 100, new Color(0.32f, 0.62f, 0.52f, 1f));
+        drawDattCharacter(pm, 72);
+        drawSimpleCharacter(pm, 132, new Color(0.32f, 0.62f, 0.52f, 1f));
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);

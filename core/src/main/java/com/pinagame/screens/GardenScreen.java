@@ -13,37 +13,28 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.pinagame.core.DialogManager;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.pinagame.core.DialogManager;
 
 /**
  * Scene "Roblox-style" yang disederhanakan jadi 2D dari atas: avatar Pina berjalan
  * di map kebun ("Grow a Garden"), lalu memicu dialog begitu mendekati Datt.
  *
- * Ada 2 "mode" tergantung bagaimana screen ini dimasuki:
- * - WALK_TO_DATT: dialog (narasi pembuka) baru saja mulai/lanjut otomatis, lalu
- *   PAUSE di node WAIT_APPROACH menunggu pemain jalanin Pina mendekati Datt.
- *   Dipakai di Hari 1 (pertemuan pertama) DAN tiap "jeda hari" (Hari 2, Hari 3).
- * - AUTO_CONTINUE: kunjungan di tengah cerita yang sudah aktif (mis. Hari 4 balik
- *   dari Instagram) -- Datt yang jalan menghampiri Pina, tidak perlu trigger.
- *
- * Begitu dialog ke-trigger (dialogTriggered=true), gerakan Pina DIKUNCI -- supaya
- * pemain fokus tap layar buat baca obrolan, bukan keliaran jalan-jalan.
- *
- * CATATAN: buildPinaTexture() versi ini hasil editan langsung oleh developer
- * (bukan versi awal saya) -- proporsi rambut/rok/sepatu disesuaikan lebih detail
- * berdasarkan referensi avatar aslinya.
+ * WORLD_W:WORLD_H sengaja diset 560:260 (~2.15:1) -- mendekati rasio layar HP
+ * landscape modern (umumnya ~2:1 sampai 2.2:1) -- supaya bilah hitam kiri-kanan
+ * (letterbox) minimal saat dijalankan di HP sungguhan, bukan cuma pas dites di
+ * jendela desktop yang rasionya lebih fleksibel.
  */
 public class GardenScreen extends BaseGameScreen {
 
     private enum EntryMode { WALK_TO_DATT, AUTO_CONTINUE }
 
-    private static final float WORLD_W = 400f;
+    private static final float WORLD_W = 560f;
     private static final float WORLD_H = 260f;
     private static final float SPEED = 90f;
     private static final float DATT_WALK_SPEED = 150f;
     private static final float FADE_DURATION = 0.7f;
-    private static final float BUBBLE_GAP = 8f; // jarak bersih antara puncak kepala dan bubble, dalam piksel layar
+    private static final float BUBBLE_GAP = 8f;
 
     private EntryMode entryMode;
 
@@ -52,7 +43,7 @@ public class GardenScreen extends BaseGameScreen {
     private float dattTargetX, dattTargetY;
     private boolean dattWalking = false;
 
-    private final Rectangle datNpcTrigger = new Rectangle(240f, 108f, 60f, 50f);
+    private final Rectangle datNpcTrigger = new Rectangle(335f, 108f, 85f, 50f);
     private boolean dialogTriggered = false;
 
     private SpriteBatch batch;
@@ -65,9 +56,9 @@ public class GardenScreen extends BaseGameScreen {
     private Label bubbleLabel;
     private Table bubbleBox;
     private String bubbleSpeaker;
+
     private Table dpad;
     private TextButton leftBtn, rightBtn, upBtn, downBtn;
-
 
     public GardenScreen(Game game, DialogManager dialogManager, String sceneId) {
         super(game, dialogManager, sceneId);
@@ -87,26 +78,51 @@ public class GardenScreen extends BaseGameScreen {
 
         switch (entryMode) {
             case AUTO_CONTINUE:
-                pinaX = 180f;
+                pinaX = 250f;
                 pinaY = 55f;
-                dattX = 370f;
+                dattX = 520f;
                 dattY = 220f;
-                dattTargetX = 215f;
+                dattTargetX = 300f;
                 dattTargetY = 95f;
                 dattWalking = true;
                 dialogTriggered = true;
                 break;
             case WALK_TO_DATT:
             default:
-                pinaX = 60f;
+                pinaX = 80f;
                 pinaY = 50f;
-                dattX = 270f;
+                dattX = 380f;
                 dattY = 128f;
                 dattWalking = false;
                 dialogTriggered = false;
                 addFadeInOverlay(FADE_DURATION);
                 break;
         }
+    }
+
+    private void buildDpad() {
+        leftBtn = new TextButton("<", skin);
+        rightBtn = new TextButton(">", skin);
+        upBtn = new TextButton("^", skin);
+        downBtn = new TextButton("v", skin);
+
+        Table cross = new Table();
+        cross.add().size(64f);
+        cross.add(upBtn).size(64f);
+        cross.add().size(64f).row();
+        cross.add(leftBtn).size(64f);
+        cross.add().size(64f);
+        cross.add(rightBtn).size(64f).row();
+        cross.add().size(64f);
+        cross.add(downBtn).size(64f);
+        cross.add().size(64f);
+
+        dpad = new Table();
+        dpad.setFillParent(true);
+        dpad.bottom().left().pad(24f);
+        dpad.add(cross);
+
+        uiStage.addActor(dpad);
     }
 
     private EntryMode resolveEntryMode() {
@@ -167,6 +183,7 @@ public class GardenScreen extends BaseGameScreen {
     }
 
     // ---------------------------------------------------------------------
+    // Pergerakan, jalan-nyamperin Datt, & trigger (koordinat dunia)
     // ---------------------------------------------------------------------
 
     private void handleInput(float delta) {
@@ -179,30 +196,6 @@ public class GardenScreen extends BaseGameScreen {
         pinaY += dy * SPEED * delta;
         pinaX = MathUtils.clamp(pinaX, 10f, WORLD_W - 10f);
         pinaY = MathUtils.clamp(pinaY, 10f, WORLD_H - 10f);
-    }
-    private void buildDpad() {
-        leftBtn = new TextButton("<", skin);
-        rightBtn = new TextButton(">", skin);
-        upBtn = new TextButton("^", skin);
-        downBtn = new TextButton("v", skin);
-
-        Table cross = new Table();
-        cross.add().size(64f);
-        cross.add(upBtn).size(64f);
-        cross.add().size(64f).row();
-        cross.add(leftBtn).size(64f);
-        cross.add().size(64f);
-        cross.add(rightBtn).size(64f).row();
-        cross.add().size(64f);
-        cross.add(downBtn).size(64f);
-        cross.add().size(64f);
-
-        dpad = new Table();
-        dpad.setFillParent(true);
-        dpad.bottom().left().pad(24f);
-        dpad.add(cross);
-
-        uiStage.addActor(dpad);
     }
 
     private void updateDattWalk(float delta) {
@@ -230,10 +223,6 @@ public class GardenScreen extends BaseGameScreen {
             return;
         }
         if (!dialogManager.isPausedAtWait()) {
-            // Pina udah deket Datt, tapi dialog BELUM beneran nyampe titik jeda
-            // (mis. pemain masih di tengah baca narasi pembuka sambil jalan) --
-            // JANGAN lakukan apa-apa dulu. Method ini dicek ulang tiap frame
-            // sampai dialog beneran paused.
             return;
         }
         dialogTriggered = true;
@@ -316,17 +305,17 @@ public class GardenScreen extends BaseGameScreen {
         }
 
         pm.setColor(new Color(0.42f, 0.3f, 0.19f, 1f));
-        pm.fillRectangle(30, 190, 70, 45);
-        pm.fillRectangle(300, 30, 60, 40);
+        pm.fillRectangle(40, 190, 100, 45);
+        pm.fillRectangle(420, 30, 84, 40);
 
-        pm.fillRectangle(220, 140, 100, 70);
+        pm.fillRectangle(310, 140, 140, 70);
         pm.setColor(new Color(0.34f, 0.24f, 0.15f, 1f));
-        pm.drawRectangle(220, 140, 100, 70);
+        pm.drawRectangle(310, 140, 140, 70);
 
         pm.setColor(new Color(0.42f, 0.3f, 0.62f, 1f));
-        pm.fillCircle(270, 175, 24);
+        pm.fillCircle(378, 175, 24);
         pm.setColor(new Color(0.58f, 0.46f, 0.78f, 1f));
-        pm.fillCircle(263, 182, 8);
+        pm.fillCircle(368, 182, 8);
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
@@ -340,22 +329,17 @@ public class GardenScreen extends BaseGameScreen {
 
         Color skin = new Color(0.92f, 0.78f, 0.68f, 1f);
         Color hair = new Color(0.55f, 0.45f, 0.38f, 1f);
-        Color blackeye = new Color(0.12f, 0.12f, 0.14f, 1f);
-        Color whiteeye = new Color(0.92f, 0.92f, 0.92f, 1f);
-        Color lips = new Color(0.94f, 0.59f, 0.67f, 1f);
         Color blouse = new Color(0.88f, 0.88f, 0.9f, 1f);
         Color blouseAccent = new Color(0.62f, 0.62f, 0.68f, 1f);
         Color blouseDark = new Color(0.25f, 0.25f, 0.35f, 1.0f);
         Color skirt = new Color(0.15f, 0.2f, 0.55f, 1f);
         Color shoes = new Color(0.92f, 0.92f, 0.92f, 1f);
 
-        // Sepatu putih
         pm.setColor(shoes);
         pm.fillRectangle(3, 19, 10, 6);
         pm.setColor(skin);
         pm.fillRectangle(3, 19, 10, 4);
 
-        // Rok biru
         pm.setColor(skirt);
         pm.fillRectangle(2, 17, 12, 3);
         pm.fillRectangle(12, 17, 2, 5);
@@ -363,7 +347,6 @@ public class GardenScreen extends BaseGameScreen {
         pm.fillRectangle(2, 19, 6, 3);
         pm.fillRectangle(2, 19, 3, 4);
 
-        // Atasan putih/abu dengan sedikit aksen motif
         pm.setColor(blouse);
         pm.fillRectangle(2, 11, 12, 6);
 
@@ -376,22 +359,19 @@ public class GardenScreen extends BaseGameScreen {
         pm.fillRectangle(4, 13, 2, 2);
         pm.fillRectangle(9, 13, 2, 2);
 
-        // Wajah
         pm.setColor(skin);
         pm.fillRectangle(4, 5, 8, 5);
         pm.fillRectangle(5, 5, 6, 6);
 
-        // Rambut atas
         pm.setColor(hair);
         pm.fillRectangle(3, 2, 10, 3);
 
-        // Rambut panjang di kedua sisi, menutupi bahu
         pm.fillRectangle(2, 4, 1, 8);
         pm.fillRectangle(2, 4, 2, 6);
         pm.fillRectangle(2, 4, 3, 4);
         pm.fillRectangle(2, 4, 4, 2);
         pm.fillRectangle(11, 4, 4, 4);
-        pm.fillRectangle(12, 4, 2, 7);
+        pm.fillRectangle(12, 4, 2, 8);
 
         Texture tex = new Texture(pm);
         tex.setFilter(TextureFilter.Nearest, TextureFilter.Nearest);
